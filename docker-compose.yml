@@ -1,0 +1,14 @@
+# Setup containers for base conda environment
+# Joseph Burling <joseph@datajoint.com>
+# --------------------------------------------------------------------------------------
+# Basic usage:
+#   docker-compose up --detach
+#   docker-compose down
+
+version: "2.4"
+services:
+  python:
+    image: iamamutt/conda_base:latest
+    init: true
+    volumes:
+      - ./data:/home/condauser/data
