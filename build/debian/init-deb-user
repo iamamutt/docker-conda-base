@@ -1,0 +1,32 @@
+#! /bin/bash
+
+# New User Initialization
+# =======================
+
+err_exit() {
+    echo "# !Error: $*"
+    exit 1
+}
+
+INITIAL_USER=condauser
+USER_GID=$(id -g $INITIAL_USER)
+[[ -z "${USER_NAME}" ]] && export USER_NAME=$INITIAL_USER
+[[ -z "${USER_UID}" ]] && USER_UID=1000
+if [[ ! $(id -u ${USER_NAME} 2>/dev/null) ]]; then
+    echo "# => Installing new user '$USER_NAME' ..."
+    useradd -u ${USER_UID} -g ${USER_GID} -ms /bin/bash ${USER_NAME}
+fi
+
+[[ -z "${APT_GET_DEPS}" ]] && APT_GET_DEPS=/srv/conda/apt_requirements.txt
+[[ -f "${APT_GET_DEPS}" ]] || err_exit "file does not exist APT_GET_DEPS='$APT_GET_DEPS'"
+echo "# => Installing debian packages from '$APT_GET_DEPS' ..."
+echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+set -e
+apt-get update >/dev/null
+cat "${APT_GET_DEPS}" | xargs apt-get -qq install -y
+apt-get autoremove -y
+apt-get clean -y
+
+echo "# => Switching to user '$USER_NAME' and running: init-conda-env $* ..."
+su ${USER_NAME} -p -s /bin/bash -c \
+    'HOME="/home/${USER_NAME}" init-conda-env "$@"' -- "init-conda-env" "$@"

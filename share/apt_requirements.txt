@@ -1,6 +1,4 @@
 bzip2
-ca-certificates
-cron
 git
 htop
 net-tools

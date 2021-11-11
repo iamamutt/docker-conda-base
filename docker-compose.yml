@@ -8,7 +8,10 @@
 version: "2.4"
 services:
   python:
-    image: iamamutt/conda_base:latest
-    init: true
     volumes:
-      - ./data:/home/condauser/data
+      - ./share:/srv/conda
+    environment:
+      USER_NAME: user
+      USER_UID: 1000
+    image: iamamutt/conda_base:latest # conda_base_dev:v0.0.0
+    init: true

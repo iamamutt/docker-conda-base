@@ -1,6 +1,6 @@
-# Containerized IBL Environment
+# Base Conda Environment
 
-This is a containerized IBL environment for ingestion of IBL data from Alyx/flatiron to  DataJoint
+This is a Docker image for building a base conda environment
 
 ## Docker build
 
@@ -15,15 +15,14 @@ Then build using the command below. Make sure to change the platform to whatever
 
 ```bash
 cd build/debian
-VERSION=v0.0.0
 docker buildx build \
     --file=Dockerfile \
     --load \
     --platform=linux/arm64 \
     --target=conda_base_debian \
-    --tag=conda_base:$VERSION \
-    --build-arg IMAGE_CREATED=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
-    --build-arg IMAGE_VERSION=$VERSION \
+    --tag=conda_base_dev:v0.0.0 \
+    --build-arg IMAGE_CREATED=2021-11-11T11:11:11Z \
+    --build-arg IMAGE_VERSION=v0.0.0 \
     --build-arg CONDA_DIST=Mambaforge \
     .
 ```
