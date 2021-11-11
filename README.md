@@ -2,6 +2,8 @@
 
 A base docker image for a containerized conda environment
 
+https://hub.docker.com/repository/docker/iamamutt/conda_base
+
 ## Installation 
 
 Download the repository from GitHub
@@ -25,7 +27,7 @@ You can also setup a custom user, debian packages, and conda environment using t
 
 1. Edit the contents of `./share/apt_requirements.txt` to install custom debian packages, and edit the content of `environment.yml` to add custom conda and pip packages. The volume must be bind mounted from host directory `./share` to `/srv/conda` in the remote container to detect these files and use them during initialization. 
 
-2. Edit the environment variables `USER_NAME` and `USER_ID` in `docker-compose.yml` to create a new user.
+2. Edit the environment variables `USER_NAME` and `USER_UID` in `docker-compose.yml` to create a new user.
 
 3. Next, run the following:
 
