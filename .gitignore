@@ -1,0 +1,12 @@
+# IDE
+.vscode/*
+*.code-workspace
+
+# macOS
+.DS_Store
+
+# credential files
+.env*
+
+# others
+*.log

@@ -1,0 +1,6 @@
+.git
+.gitignore
+.Trash-0/*
+.vscode/*
+*.DS_Store
+README.md
