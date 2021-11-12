@@ -4,7 +4,7 @@
 ARG IMAGE_CREATED
 ARG IMAGE_VERSION
 ARG USER_NAME=condauser
-ARG USER_GROUP=conda
+ARG USER_GROUP=condabase
 ARG USER_UID=999
 ARG USER_GID=999
 ARG TIMEZONE="America/Chicago"
@@ -87,8 +87,7 @@ EOF
 
 # Default apt-get dependencies and conda environment files -----------------------------
 RUN cat <<-EOF >> /srv/conda/apt_requirements.txt
-	git
-	openssh-client
+	wget
 EOF
 
 RUN cat <<-EOF >> /srv/conda/environment.yml
@@ -122,8 +121,8 @@ RUN <<-EOF
 	conda clean -yiqaf
 EOF
 
-COPY --chown=${USER_UID}:${USER_GID} ./init-deb-user ./init-conda-env /usr/local/bin/
-RUN chmod 774 /usr/local/bin/init-deb-user /usr/local/bin/init-conda-env
+COPY --chown=${USER_UID}:${USER_GID} ./init-env ./init-conda-env /usr/local/bin/
+RUN chmod 774 /usr/local/bin/init-env /usr/local/bin/init-conda-env
 
 ## Target stage ========================================================================
 FROM scratch as conda_base_debian
@@ -146,4 +145,4 @@ ENV CONDA_DIR=/opt/local/conda
 ENV CONDA_ENV_USER=base
 USER 0:${USER_GID}
 WORKDIR /srv/conda
-ENTRYPOINT [ "init-deb-user" ]
+ENTRYPOINT [ "init-env" ]

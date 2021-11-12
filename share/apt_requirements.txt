@@ -6,4 +6,3 @@ nvi
 openssh-client
 procps
 tmux
-wget
