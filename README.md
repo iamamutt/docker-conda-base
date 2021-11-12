@@ -34,3 +34,24 @@ You can also setup a custom user, debian packages, and conda environment using t
 ```bash
 docker-compose up --detach
 ```
+
+## Extending the base image
+
+You can create a new `Dockerfile` and import the base image to extend a new image. Assuming you have the files `apt_requirements.txt` and `environment.yml` in your build context. 
+
+```dockerfile
+FROM iamamutt/conda_base:latest
+ARG USER_NAME=newuser
+COPY apt_requirements.txt environment.yml ./
+RUN init-env
+USER ${USER_NAME}
+WORKDIR /home/${USER_NAME}
+ENTRYPOINT [ "conda-run" ]
+CMD ["tail", "-f", "/dev/null"]
+```
+
+Then build the image,
+
+```bash
+docker build --tag=myimage:latest --load .
+```
