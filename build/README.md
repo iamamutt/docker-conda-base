@@ -31,7 +31,7 @@ For pushing to docker hub.
 
 ```bash
 cd build/debian
-VERSION=v1.0.0
+VERSION=v1.0.1
 docker buildx build \
     --file=Dockerfile \
     --push \
