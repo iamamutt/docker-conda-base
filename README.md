@@ -18,7 +18,7 @@ cd docker-conda-base
 You can start the container using the defaults:
 
 ```bash
-docker run --name conda_base_python -itd --init iamamutt/conda_base:latest
+docker run --name conda_base_python -itd --init iamamutt/conda_base:latest dev
 ```
 
 ### docker-compose 

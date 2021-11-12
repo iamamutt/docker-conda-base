@@ -16,12 +16,12 @@ err_exit() {
 
 set -e
 echo "# => Installing new conda virtual environment from $CONDA_ENV_FILE ..."
-conda activate base
+conda activate base > /dev/null
 CONDA_CMD=mamba
 command -v $CONDA_CMD &>/dev/null || CONDA_CMD=conda
 set +e
 $CONDA_CMD env create --file "${CONDA_ENV_FILE}"
-
+set -e
 # set CONDA_ENV_USER based on .yml file
 if [[ -z "${CONDA_ENV_USER}" ]] || [[ "${CONDA_ENV_USER}" = base ]]; then
     export CONDA_ENV_USER=$(awk '/name\:/ {print;}' "${CONDA_ENV_FILE}" |
@@ -30,11 +30,12 @@ fi
 
 echo "# => Switching to appropriate python environment and running command $* ..."
 [[ -z "$CONDA_ENV_USER" ]] && CONDA_ENV_USER=base
-conda activate $CONDA_ENV_USER
+conda activate $CONDA_ENV_USER > /dev/null
 
 if [[ ${#@} -gt 0 ]]; then
+    if [[ "$1" == "dev" ]]; then
+        tail -f /dev/null
+    fi
     set -eo pipefail
     exec -l "$@"
-else
-    tail -f /dev/null
 fi

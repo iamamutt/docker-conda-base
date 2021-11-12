@@ -15,3 +15,4 @@ services:
       USER_UID: 1000
     image: iamamutt/conda_base:latest # conda_base_dev:v0.0.0
     init: true
+    command: ["dev"]
