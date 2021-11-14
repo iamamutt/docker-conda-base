@@ -70,7 +70,7 @@ RUN	<<-EOF
 		--create-home --groups users,sudo --shell /bin/bash ${USER_NAME}
 	passwd -qd ${USER_NAME}
 	echo '${USER_NAME} ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
-	install -m 771 /dev/null /usr/local/bin/conda-run
+	install -m 770 /dev/null /usr/local/bin/conda-run
 	install -m 644 /dev/null /srv/conda/apt_requirements.txt
 	install -m 644 /dev/null /srv/conda/environment.yml
 	chown :${USER_GID} /usr/local/bin/conda-run /srv/conda /srv/conda/*
@@ -97,6 +97,9 @@ RUN cat <<-EOF >> /srv/conda/environment.yml
 	  - pip
 EOF
 
+COPY --chown=0:${USER_GID} ./init-env ./init-conda-env /usr/local/bin/
+RUN chmod 770 /usr/local/bin/init-env /usr/local/bin/init-conda-env
+
 # Install conda as user ----------------------------------------------------------------
 USER ${USER_UID}:${USER_GID}
 WORKDIR /srv/conda
@@ -120,9 +123,6 @@ RUN <<-EOF
 	conda config --set pip_interop_enabled true
 	conda clean -yiqaf
 EOF
-
-COPY --chown=${USER_UID}:${USER_GID} ./init-env ./init-conda-env /usr/local/bin/
-RUN chmod 774 /usr/local/bin/init-env /usr/local/bin/init-conda-env
 
 ## Target stage ========================================================================
 FROM scratch as conda_base_debian

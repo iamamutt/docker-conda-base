@@ -4,20 +4,12 @@ This is a Docker image for building a base conda environment
 
 ## Docker build
 
-The Dockerfile makes use of `buildx`. You may need to set this up before trying to build the image.
-
-```bash
-docker buildx install
-docker buildx create --platform linux/arm64,linux/arm/v8,linux/amd64 --name=mrbuild --use
-```
-
 Then build using the command below. Make sure to change the platform to whatever you need, e.g., `linux/arm64`, `linux/amd64`, etc...
 
 ```bash
 cd build/debian
-docker buildx build \
+docker build \
     --file=Dockerfile \
-    --load \
     --platform=linux/arm64 \
     --target=conda_base_debian \
     --tag=conda_base_dev:v0.0.0 \
@@ -28,6 +20,13 @@ docker buildx build \
 ```
 
 For pushing to docker hub.
+
+The Dockerfile makes use of `buildkit`. To push multiple architectures at a time, you need `buildx`. You may need to set this up before trying to build the image.
+
+```bash
+docker buildx install
+docker buildx create --platform linux/arm64,linux/arm/v8,linux/amd64 --name=mrbuild --use
+```
 
 ```bash
 cd build/debian
@@ -42,4 +41,5 @@ docker buildx build \
     --build-arg IMAGE_CREATED=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
     --build-arg IMAGE_VERSION=$VERSION \
     .
+docker buildx uninstall
 ```

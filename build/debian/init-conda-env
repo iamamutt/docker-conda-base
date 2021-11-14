@@ -3,6 +3,7 @@
 # New Conda Environment Initialization Script
 # ===========================================
 
+echo "# => Environment variables: ..."
 printenv
 
 err_exit() {
