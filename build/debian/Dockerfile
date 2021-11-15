@@ -142,7 +142,7 @@ ENV TZ=${TIMEZONE}
 ENV LANG=en_US.utf8
 ENV LC_ALL=en_US.utf8
 ENV CONDA_DIR=/opt/local/conda
-ENV CONDA_ENV_USER=base
+ENV CONDA_ENV_USER=
 USER 0:${USER_GID}
 WORKDIR /srv/conda
 ENTRYPOINT [ "init-env" ]

@@ -11,27 +11,36 @@ err_exit() {
     exit 1
 }
 
+# set CONDA_ENV_USER based on .yml environment file
+set_conda_env_user_from_file() {
+    local env_file="${1:-${CONDA_ENV_FILE}}"
+    if [[ "${CONDA_ENV_USER}" == "base" ]] || [[ -z "${CONDA_ENV_USER}" ]]; then
+        export CONDA_ENV_USER=$(awk '/name\:/ {print;}' "${CONDA_ENV_FILE}" |
+            awk '{sub(/name\: /, "");} 1')
+        echo "export CONDA_ENV_USER=${CONDA_ENV_USER}" >>/etc/profile.d/conda.sh
+    fi
+}
+
 [[ -z "${CONDA_ENV_FILE}" ]] && CONDA_ENV_FILE=/srv/conda/environment.yml
 [[ -f "${CONDA_ENV_FILE}" ]] ||
     err_exit "file does not exist CONDA_ENV_FILE='$CONDA_ENV_FILE'"
 
-set -e
 echo "# => Installing new conda virtual environment from $CONDA_ENV_FILE ..."
-conda activate base > /dev/null
+set -e
+conda activate base >/dev/null
 CONDA_CMD=mamba
 command -v $CONDA_CMD &>/dev/null || CONDA_CMD=conda
+
 set +e
 $CONDA_CMD env create --file "${CONDA_ENV_FILE}"
+
+echo "# => Setting CONDA_ENV_USER=${CONDA_ENV_USER} ..."
 set -e
-# set CONDA_ENV_USER based on .yml file
-if [[ -z "${CONDA_ENV_USER}" ]] || [[ "${CONDA_ENV_USER}" = base ]]; then
-    export CONDA_ENV_USER=$(awk '/name\:/ {print;}' "${CONDA_ENV_FILE}" |
-        awk '{sub(/name\: /, "");} 1')
-fi
+set_conda_env_user_from_file "${CONDA_ENV_FILE}"
 
 echo "# => Switching to appropriate python environment and running command $* ..."
 [[ -z "$CONDA_ENV_USER" ]] && CONDA_ENV_USER=base
-conda activate $CONDA_ENV_USER > /dev/null
+conda activate $CONDA_ENV_USER >/dev/null
 
 if [[ ${#@} -gt 0 ]]; then
     if [[ "$1" == "dev" ]]; then
