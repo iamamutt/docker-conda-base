@@ -15,7 +15,7 @@ err_exit() {
 set_conda_env_user_from_file() {
     local env_file="${1:-${CONDA_ENV_FILE}}"
     if [[ "${CONDA_ENV_USER}" == "base" ]] || [[ -z "${CONDA_ENV_USER}" ]]; then
-        export CONDA_ENV_USER=$(awk '/name\:/ {print;}' "${CONDA_ENV_FILE}" |
+        export CONDA_ENV_USER=$(awk '/name\:/ {print;}' "${env_file}" |
             awk '{sub(/name\: /, "");} 1')
         echo "export CONDA_ENV_USER=${CONDA_ENV_USER}" >>/etc/profile.d/conda.sh
     fi
@@ -39,8 +39,8 @@ set -e
 set_conda_env_user_from_file "${CONDA_ENV_FILE}"
 
 echo "# => Switching to appropriate python environment and running command $* ..."
-[[ -z "$CONDA_ENV_USER" ]] && CONDA_ENV_USER=base
-conda activate $CONDA_ENV_USER >/dev/null
+[[ -z "${CONDA_ENV_USER}" ]] && CONDA_ENV_USER=base
+conda activate ${CONDA_ENV_USER} >/dev/null
 
 if [[ ${#@} -gt 0 ]]; then
     if [[ "$1" == "dev" ]]; then
