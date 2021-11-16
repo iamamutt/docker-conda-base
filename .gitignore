@@ -1,6 +1,7 @@
 # IDE
 .vscode/*
 *.code-workspace
+.devcontainer
 
 # macOS
 .DS_Store
