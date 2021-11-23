@@ -37,8 +37,8 @@ jobs:
           build-args: |
             IMAGE_CREATED=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
             IMAGE_VERSION=${{ github.ref_name }}
-          context: build/debian
-          file: Dockerfile
+          context: ./build/debian
+          file: ./build/debian/Dockerfile
           platforms: linux/arm64,linux/amd64
           push: true
           tags: |
