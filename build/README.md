@@ -25,7 +25,7 @@ The Dockerfile makes use of `buildkit`. To push multiple architectures at a time
 
 ```bash
 docker buildx install
-docker buildx create --platform linux/arm64,linux/arm/v8,linux/amd64 --name=mrbuild --use
+docker buildx create --platform linux/arm64,linux/arm/v8,linux/amd64,linux/x86_64,linux/aarch64 --name=mrbuild --use
 ```
 
 ```bash
