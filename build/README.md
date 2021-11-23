@@ -25,21 +25,27 @@ The Dockerfile makes use of `buildkit`. To push multiple architectures at a time
 
 ```bash
 docker buildx install
-docker buildx create --platform linux/arm64,linux/arm/v8,linux/amd64,linux/x86_64,linux/aarch64 --name=mrbuild --use
+docker buildx create --platform linux/arm64,linux/arm64/v8,linux/amd64,linux/x86_64,linux/aarch64 --name=mrbuilder --use
 ```
 
 ```bash
 cd build/debian
-VERSION=v1.0.2
+VERSION=v1.0.0
 docker buildx build \
     --file=Dockerfile \
     --push \
-    --platform=linux/amd64,linux/arm64 \
+    --platform=linux/arm64,linux/amd64 \
     --target=conda_base_debian \
     --tag=iamamutt/conda_base:$VERSION \
     --tag=iamamutt/conda_base:latest \
     --build-arg IMAGE_CREATED=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
     --build-arg IMAGE_VERSION=$VERSION \
     .
+```
+
+To remove the installed buildx builder
+    
+```bash
+docker buildx rm mrbuilder
 docker buildx uninstall
 ```

@@ -1,8 +1,6 @@
 # syntax=docker/dockerfile:1.3-labs
 
 # global arguments shared across build stages
-ARG IMAGE_CREATED
-ARG IMAGE_VERSION
 ARG USER_NAME=condauser
 ARG USER_GROUP=condabase
 ARG USER_UID=999
@@ -16,8 +14,6 @@ ARG CONDA_DIST=Mambaforge
 FROM debian:11-slim as conda_base_debian_0
 
 # inherit from global args
-ARG IMAGE_CREATED
-ARG IMAGE_VERSION
 ARG USER_NAME
 ARG USER_GROUP
 ARG USER_UID
@@ -27,8 +23,6 @@ ARG CONDA_DIST
 
 LABEL org.opencontainers.image.authors="Joseph Burling"
 LABEL org.opencontainers.image.title="${CONDA_DIST}_base_debian_0"
-LABEL org.opencontainers.image.created="$IMAGE_CREATED"
-LABEL org.opencontainers.image.version="$IMAGE_VERSION"
 LABEL org.opencontainers.image.description="A debian-based conda python environment (install)"
 
 ENV CONDA_DIR=/opt/local/conda
@@ -133,11 +127,6 @@ ARG CONDA_DIST
 ARG USER_NAME
 ARG USER_GID
 ARG TIMEZONE
-LABEL org.opencontainers.image.authors="Joseph Burling"
-LABEL org.opencontainers.image.title="${CONDA_DIST}_base_debian_build"
-LABEL org.opencontainers.image.created="$IMAGE_CREATED"
-LABEL org.opencontainers.image.version="$IMAGE_VERSION"
-LABEL org.opencontainers.image.description="A debian-based conda python environment"
 ENV TZ=${TIMEZONE}
 ENV LANG=en_US.utf8
 ENV LC_ALL=en_US.utf8
@@ -146,3 +135,8 @@ ENV CONDA_ENV_USER=
 USER 0:${USER_GID}
 WORKDIR /srv/conda
 ENTRYPOINT [ "init-env" ]
+LABEL org.opencontainers.image.authors="Joseph Burling"
+LABEL org.opencontainers.image.title="${CONDA_DIST}_base_debian_build"
+LABEL org.opencontainers.image.description="A debian-based conda python environment"
+LABEL org.opencontainers.image.version="$IMAGE_VERSION"
+LABEL org.opencontainers.image.created="$IMAGE_CREATED"
