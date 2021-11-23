@@ -30,12 +30,9 @@ set -e
 conda activate base >/dev/null
 CONDA_CMD=mamba
 command -v $CONDA_CMD &>/dev/null || CONDA_CMD=conda
-
-set +e
 $CONDA_CMD env create --file "${CONDA_ENV_FILE}"
 
 echo "# => Setting CONDA_ENV_USER=${CONDA_ENV_USER} ..."
-set -e
 set_conda_env_user_from_file "${CONDA_ENV_FILE}"
 
 echo "# => Switching to appropriate python environment and running command $* ..."
