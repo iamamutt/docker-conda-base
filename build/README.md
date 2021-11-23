@@ -30,7 +30,7 @@ docker buildx create --platform linux/arm64,linux/arm/v8,linux/amd64 --name=mrbu
 
 ```bash
 cd build/debian
-VERSION=v1.0.1
+VERSION=v1.0.2
 docker buildx build \
     --file=Dockerfile \
     --push \
