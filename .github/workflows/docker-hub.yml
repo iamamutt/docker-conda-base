@@ -10,8 +10,20 @@ jobs:
   conda_base_debian:
     runs-on: self-hosted
     steps:
+      - name: Get current date
+        id: timestamp
+        run: echo "::set-output name=date::$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+
       - name: Checkout Repository
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: 'Get Previous tag'
+        id: previoustag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+        with:
+          fallback: v0.0.0
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -35,7 +47,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           build-args: |
-            IMAGE_CREATED=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+            IMAGE_CREATED=${{ steps.timestamp.outputs.date }}
             IMAGE_VERSION=${{ github.ref_name }}
           context: ./build/debian
           file: ./build/debian/Dockerfile
@@ -43,7 +55,7 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKER_HUB_USERNAME }}/conda_base:latest
-            ${{ secrets.DOCKER_HUB_USERNAME }}/conda_base:${{ github.ref_name }}
+            ${{ secrets.DOCKER_HUB_USERNAME }}/conda_base:${{ steps.previoustag.outputs.tag }}
           target: conda_base_debian
 
       - name: Image digest
