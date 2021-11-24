@@ -51,8 +51,9 @@ docker buildx uninstall
 ```
 
 <!-- 
-# git tag -a v1.0.1 -m "GitHub Actions Initial Workflow"
-# git push origin v1.0.1
-# git push --delete origin v1.0.1
+# git tag -a v1.0.0 -m "GitHub Actions Initial Workflow"
+# git push origin v1.0.0
+# git tag -d v1.0.0
+# git push --delete origin v1.0.0
 date -d @1637695393 +'%Y-%m-%dT%H:%M:%SZ'
 -->
