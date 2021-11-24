@@ -2,16 +2,7 @@
 
 A base docker image for a containerized conda environment
 
-https://hub.docker.com/repository/docker/iamamutt/conda_base
-
-## Installation 
-
-Download the repository from GitHub
-
-```bash
-git clone https://github.com/iamamutt/docker-conda-base.git
-cd docker-conda-base
-```
+## Usage
 
 ### docker run
 
@@ -21,11 +12,22 @@ You can start the container using the defaults:
 docker run --name conda_base_python -itd --init iamamutt/conda_base:latest dev
 ```
 
-### docker-compose 
+### docker-compose
 
 You can also setup a custom user, debian packages, and conda environment using the file `docker-compose.yml`.
 
-1. Edit the contents of `./share/apt_requirements.txt` to install custom debian packages, and edit the content of `environment.yml` to add custom conda and pip packages. The volume must be bind mounted from host directory `./share` to `/srv/conda` in the remote container to detect these files and use them during initialization. 
+Download the repository from GitHub
+
+```bash
+git clone https://github.com/iamamutt/docker-conda-base.git
+cd docker-conda-base
+```
+
+You can bind mount any local directory to the container directory `/srv/conda`. The local directory should contain a `apt_requirements.txt` for Debian package installation and a `environment.yml` file for setting up a new conda environment.
+
+For example, using the GitHub repository contents,
+
+1. Edit the content of `./share/apt_requirements.txt` to install custom debian packages, and edit the content of `environment.yml` to add custom conda and pip packages. In `docker-compose.yml`, the volume must be bind mounted from host `./share` to `/srv/conda` in the remote container to detect these files and use them during initialization.
 
 2. Edit the environment variables `USER_NAME` and `USER_UID` in `docker-compose.yml` to create a new user.
 
@@ -35,14 +37,14 @@ You can also setup a custom user, debian packages, and conda environment using t
 docker-compose up --detach
 ```
 
-## Extending the base image
+### Extending the base image
 
-You can create a new `Dockerfile` and import the base image to extend a new image. Assuming you have the files `apt_requirements.txt` and `environment.yml` in your build context. 
+You can create a new `Dockerfile` and import the base image to extend a new image. Assuming you have the files `apt_requirements.txt` and `environment.yml` in your build context.
 
 ```dockerfile
 FROM iamamutt/conda_base:latest
 ARG USER_NAME=newuser
-COPY apt_requirements.txt environment.yml ./
+COPY apt_requirements.txt environment.yml /srv/conda/
 RUN init-env
 USER ${USER_NAME}
 WORKDIR /home/${USER_NAME}
@@ -50,8 +52,9 @@ ENTRYPOINT [ "conda-run" ]
 CMD ["tail", "-f", "/dev/null"]
 ```
 
-Then build the image,
+Then build and run the image,
 
 ```bash
 docker build --tag=myimage:latest --load .
+docker run --name conda_base_python -itd --init myimage:latest dev
 ```

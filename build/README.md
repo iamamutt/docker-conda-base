@@ -4,7 +4,7 @@ This is a Docker image for building a base conda environment
 
 ## Docker build
 
-Then build using the command below. Make sure to change the platform to whatever you need, e.g., `linux/arm64`, `linux/amd64`, etc...
+Build using the command below. Make sure to change the platform to whatever you need, e.g., `linux/arm64`, `linux/amd64`, etc...
 
 ```bash
 cd build/debian
@@ -25,7 +25,7 @@ The Dockerfile makes use of `buildkit`. To push multiple architectures at a time
 
 ```bash
 docker buildx install
-docker buildx create --platform linux/arm64,linux/arm64/v8,linux/amd64,linux/x86_64,linux/aarch64 --name=mrbuilder --use
+docker buildx create --platform linux/arm64,linux/amd64 --name=mrbuilder --use
 ```
 
 ```bash
@@ -51,9 +51,9 @@ docker buildx uninstall
 ```
 
 <!-- 
-# git tag -a v1.0.0 -m "GitHub Actions Initial Workflow"
-# git push origin v1.0.0
-# git tag -d v1.0.0
-# git push --delete origin v1.0.0
-date -d @1637695393 +'%Y-%m-%dT%H:%M:%SZ'
+#> git tag -a v1.0.0 -m "GitHub Actions Initial Workflow"
+#> git push origin v1.0.0
+
+#> git tag -d v1.0.0
+#> git push --delete origin v1.0.0
 -->
