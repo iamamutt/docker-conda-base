@@ -55,7 +55,7 @@ jobs:
         with:
           build-args: |
             IMAGE_CREATED=${{ steps.timestamp.outputs.date }}
-            IMAGE_VERSION=${{ github.ref_name }}
+            IMAGE_VERSION=${{ steps.previoustag.outputs.tag }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
           context: ./build/debian
