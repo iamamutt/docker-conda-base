@@ -2,7 +2,7 @@
 
 # global arguments shared across build stages
 ARG USER_NAME=condauser
-ARG USER_GROUP=condabase
+ARG USER_GROUP=condauser
 ARG USER_UID=999
 ARG USER_GID=999
 ARG TIMEZONE="America/Chicago"
