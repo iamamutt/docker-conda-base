@@ -22,7 +22,7 @@ set_conda_env_user_from_file() {
     fi
 }
 
-[[ -z "${CONDA_ENV_FILE}" ]] && CONDA_ENV_FILE=/srv/conda/environment.yml
+[[ -z "${CONDA_ENV_FILE}" ]] && export CONDA_ENV_FILE=/srv/conda/environment.yml
 [[ -f "${CONDA_ENV_FILE}" ]] ||
     err_exit "file does not exist CONDA_ENV_FILE='$CONDA_ENV_FILE'"
 
@@ -31,7 +31,7 @@ set -e
 conda activate base >/dev/null
 CONDA_CMD=mamba
 command -v $CONDA_CMD &>/dev/null || CONDA_CMD=conda
-$CONDA_CMD env create --file "${CONDA_ENV_FILE}"
+$CONDA_CMD env create --force --file "${CONDA_ENV_FILE}"
 set_conda_env_user_from_file "${CONDA_ENV_FILE}"
 
 echo "# => Switching to appropriate python environment and running command $* ..."

@@ -10,19 +10,32 @@ err_exit() {
 
 set -e
 
-USER_NAME="${1:-${USER_NAME}}"
+USER_NAME="${1:-${NEW_USER_NAME}}"
 [[ -z "${USER_NAME}" ]] && USER_NAME="${IMAGE_DEFAULT_USER}"
 [[ -z "${USER_NAME}" ]] && err_exit "Empty environment variable USER_NAME"
 
-USER_UID=${2:-${USER_UID}}
+USER_UID=${2:-${NEW_USER_UID}}
 [[ -z "${USER_UID}" ]] && USER_UID=1000
 
-USER_GID=${3:-${USER_GID}}
+USER_GID=${3:-${NEW_USER_GID}}
 [[ -z "${USER_GID}" ]] && USER_GID=$(id -g "${IMAGE_DEFAULT_USER}")
 [[ -z "${USER_GID}" ]] && err_exit "Empty environment variable USER_GID"
 
-if [[ ! $(id -u ${USER_NAME} 2>/dev/null) ]]; then
-    useradd -u ${USER_UID} -g ${USER_GID} --groups users,sudo -ms /bin/bash ${USER_NAME}
+USER_GROUP=${4:-${NEW_USER_GROUP}}
+[[ -z "${USER_GROUP}" ]] && USER_GROUP=${IMAGE_DEFAULT_GROUP}
+[[ -z "${USER_GROUP}" ]] && err_exit "Empty environment variable USER_GROUP"
+
+if [[ ! ${USER_GID} -eq $(id -g "${IMAGE_DEFAULT_USER}") ]]; then
+    [[ "${USER_GROUP}" == "${IMAGE_DEFAULT_USER}" ]] && err_exit \
+        "New group name $USER_GROUP can't be the same as $IMAGE_DEFAULT_USER" \
+        "group name when specifying a new group id."
+    groupadd --gid ${USER_GID} --force ${USER_GROUP}
 fi
+
+if [[ ! $(id -u ${USER_NAME} 2>/dev/null) ]]; then
+    useradd -u ${USER_UID} -g ${USER_GID} -ms /bin/bash ${USER_NAME}
+fi
+
+usermod -a -G users,sudo,${IMAGE_DEFAULT_GROUP} ${USER_NAME} 2>/dev/null
 
 echo "${USER_NAME}"

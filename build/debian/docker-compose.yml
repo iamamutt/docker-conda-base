@@ -4,8 +4,10 @@ version: "2.4"
 services:
   conda-base-dev:
     environment:
-      USER_NAME: dev
-      USER_UID: 1001
+      NEW_USER_NAME: joseph
+      NEW_USER_UID: 501
+      NEW_USER_GROUP: staff
+      NEW_USER_GID: 20
     image: conda_base_dev:v0.0.0a
     build:
       context: .
