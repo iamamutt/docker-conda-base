@@ -2,8 +2,6 @@ name: Docker Image CI
 
 on:
   push:
-    tags:
-      - "v*.*.*"
     branches: [main]
 
 jobs:
@@ -19,7 +17,7 @@ jobs:
         id: previoustag
         uses: WyriHaximus/github-action-get-previous-tag@v1
         with:
-          fallback: v0.0.0
+          fallback: v0.0.0a
 
       - name: Get current date
         id: timestamp
