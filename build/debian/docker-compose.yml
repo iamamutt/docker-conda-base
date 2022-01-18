@@ -1,5 +1,6 @@
 # docker compose up --build -d
 # docker ps -l --no-trunc
+# docker compose logs conda-base-dev
 version: "2.4"
 services:
   conda-base-dev:

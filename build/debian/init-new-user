@@ -26,16 +26,22 @@ USER_GROUP=${4:-${NEW_USER_GROUP}}
 [[ -z "${USER_GROUP}" ]] && err_exit "Empty environment variable USER_GROUP"
 
 if [[ ! ${USER_GID} -eq $(id -g "${IMAGE_DEFAULT_USER}") ]]; then
-    [[ "${USER_GROUP}" == "${IMAGE_DEFAULT_USER}" ]] && err_exit \
-        "New group name $USER_GROUP can't be the same as $IMAGE_DEFAULT_USER" \
-        "group name when specifying a new group id."
+    [[ "${USER_GROUP}" == "${IMAGE_DEFAULT_GROUP}" ]] && err_exit \
+        "Group name $USER_GROUP with new group id $USER_GID can't be the same as" \
+        "existing group name and id:" \
+        "$IMAGE_DEFAULT_USER = $(id -g ${IMAGE_DEFAULT_USER})."
     groupadd --gid ${USER_GID} --force ${USER_GROUP}
+
 fi
 
 if [[ ! $(id -u ${USER_NAME} 2>/dev/null) ]]; then
     useradd -u ${USER_UID} -g ${USER_GID} -ms /bin/bash ${USER_NAME}
 fi
 
-usermod -a -G users,sudo,${IMAGE_DEFAULT_GROUP} ${USER_NAME} 2>/dev/null
+if [[ ! "$(getent group $(id -g ${USER_NAME}) | cut -d: -f1)" == "${USER_GROUP}" ]]; then
+    USER_GROUP=$(getent group ${USER_GID} | cut -d: -f1)
+fi
+
+usermod -a -G users,sudo,${IMAGE_DEFAULT_GROUP},${USER_GROUP} ${USER_NAME} 2>/dev/null
 
 echo "${USER_NAME}"

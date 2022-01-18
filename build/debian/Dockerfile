@@ -4,7 +4,7 @@
 ARG USER_NAME=condauser
 ARG USER_GROUP=condauser
 ARG USER_UID=999
-ARG USER_GID=1000
+ARG USER_GID=999
 ARG TIMEZONE="America/Chicago"
 
 # Miniforge, Mambaforge, Miniforge-pypy3, Mambaforge-pypy3
