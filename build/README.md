@@ -12,9 +12,9 @@ docker build \
     --file=Dockerfile \
     --platform=linux/arm64 \
     --target=conda_base_debian \
-    --tag=conda_base_dev:v0.0.0 \
+    --tag=conda_base_dev:v0.0.0a \
     --build-arg IMAGE_CREATED=2021-11-11T11:11:11Z \
-    --build-arg IMAGE_VERSION=v0.0.0 \
+    --build-arg IMAGE_VERSION=v0.0.0a \
     --build-arg CONDA_DIST=Mambaforge \
     .
 ```
@@ -51,6 +51,21 @@ docker buildx uninstall
 ```
 
 <!-- 
+
+```bash
+cd build/debian
+docker buildx build \
+    --file=Dockerfile \
+    --platform=linux/arm64 \
+    --output=type=docker \
+    --target=conda_base_debian \
+    --tag=conda_base_dev:v0.0.0a \
+    --build-arg IMAGE_CREATED=2021-11-11T11:11:11Z \
+    --build-arg IMAGE_VERSION=v0.0.0a \
+    --build-arg CONDA_DIST=Mambaforge \
+    .
+```
+
 #> git tag -a v1.0.0 -m "GitHub Actions Initial Workflow"
 #> git push origin v1.0.0
 

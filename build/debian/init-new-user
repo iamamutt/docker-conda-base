@@ -1,0 +1,28 @@
+#! /bin/bash
+
+# New User Initialization
+# =======================
+
+err_exit() {
+    echo "# !Error: $*"
+    exit 1
+}
+
+set -e
+
+USER_NAME="${1:-${USER_NAME}}"
+[[ -z "${USER_NAME}" ]] && USER_NAME="${IMAGE_DEFAULT_USER}"
+[[ -z "${USER_NAME}" ]] && err_exit "Empty environment variable USER_NAME"
+
+USER_UID=${2:-${USER_UID}}
+[[ -z "${USER_UID}" ]] && USER_UID=1000
+
+USER_GID=${3:-${USER_GID}}
+[[ -z "${USER_GID}" ]] && USER_GID=$(id -g "${IMAGE_DEFAULT_USER}")
+[[ -z "${USER_GID}" ]] && err_exit "Empty environment variable USER_GID"
+
+if [[ ! $(id -u ${USER_NAME} 2>/dev/null) ]]; then
+    useradd -u ${USER_UID} -g ${USER_GID} --groups users,sudo -ms /bin/bash ${USER_NAME}
+fi
+
+echo "${USER_NAME}"

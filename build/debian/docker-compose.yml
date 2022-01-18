@@ -1,0 +1,15 @@
+# docker compose up --build -d
+# docker ps -l --no-trunc
+version: "2.4"
+services:
+  conda-base-dev:
+    environment:
+      USER_NAME: dev
+      USER_UID: 1001
+    image: conda_base_dev:v0.0.0a
+    build:
+      context: .
+      dockerfile: Dockerfile
+    init: true
+    tty: true
+    command: "dev"

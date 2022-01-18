@@ -4,7 +4,7 @@
 ARG USER_NAME=condauser
 ARG USER_GROUP=condauser
 ARG USER_UID=999
-ARG USER_GID=999
+ARG USER_GID=1000
 ARG TIMEZONE="America/Chicago"
 
 # Miniforge, Mambaforge, Miniforge-pypy3, Mambaforge-pypy3
@@ -37,8 +37,7 @@ RUN <<-EOF
 	mkdir -p /usr/share/man/man1
 	echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 	apt-get update
-	apt-get -qq install -y apt-utils
-	apt-get -qq install -y locales wget sudo
+	apt-get -qq install -y apt-utils locales wget ca-certificates sudo
 	localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 	ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime
 	echo ${TZ} > /etc/timezone
@@ -81,7 +80,7 @@ EOF
 
 # Default apt-get dependencies and conda environment files -----------------------------
 RUN cat <<-EOF >> /srv/conda/apt_requirements.txt
-	wget
+	bash
 EOF
 
 RUN cat <<-EOF >> /srv/conda/environment.yml
@@ -91,8 +90,11 @@ RUN cat <<-EOF >> /srv/conda/environment.yml
 	  - pip
 EOF
 
-COPY --chown=0:${USER_GID} ./init-env ./init-conda-env /usr/local/bin/
-RUN chmod 770 /usr/local/bin/init-env /usr/local/bin/init-conda-env
+COPY --chown=0:${USER_GID} ./init-env ./init-new-user ./init-conda-env /usr/local/bin/
+RUN chmod 770 \
+	/usr/local/bin/init-env \
+	/usr/local/bin/init-new-user \
+	/usr/local/bin/init-conda-env
 
 # Install conda as user ----------------------------------------------------------------
 USER ${USER_UID}:${USER_GID}
@@ -125,11 +127,14 @@ ARG IMAGE_CREATED
 ARG IMAGE_VERSION
 ARG CONDA_DIST
 ARG USER_NAME
+ARG USER_GROUP
 ARG USER_GID
 ARG TIMEZONE
 ENV TZ=${TIMEZONE}
 ENV LANG=en_US.utf8
 ENV LC_ALL=en_US.utf8
+ENV IMAGE_DEFAULT_USER=${USER_NAME}
+ENV IMAGE_DEFAULT_GROUP=${USER_GROUP}
 ENV CONDA_DIR=/opt/local/conda
 ENV CONDA_ENV_USER=
 USER 0:${USER_GID}
