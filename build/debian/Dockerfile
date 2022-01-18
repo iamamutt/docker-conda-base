@@ -21,9 +21,9 @@ ARG USER_GID
 ARG TIMEZONE
 ARG CONDA_DIST
 
-LABEL org.opencontainers.image.authors="Joseph Burling"
-LABEL org.opencontainers.image.title="${CONDA_DIST}_base_debian_0"
-LABEL org.opencontainers.image.description="A debian-based conda python environment (install)"
+LABEL org.opencontainers.image.authors "Joseph Burling"
+LABEL org.opencontainers.image.title "${CONDA_DIST}_base_debian_0"
+LABEL org.opencontainers.image.description "A debian-based conda python environment (install)"
 
 ENV CONDA_DIR=/opt/local/conda
 ENV PATH=${CONDA_DIR}/bin:$PATH
@@ -125,10 +125,16 @@ EOF
 
 ## Target stage ========================================================================
 FROM scratch as conda_base_debian
-COPY --from=conda_base_debian_0 / /
 ARG IMAGE_CREATED
 ARG IMAGE_VERSION
 ARG CONDA_DIST
+LABEL org.opencontainers.image.authors "Joseph Burling"
+LABEL org.opencontainers.image.title "${CONDA_DIST}_base_debian_build"
+LABEL org.opencontainers.image.description "A debian-based conda python environment"
+LABEL org.opencontainers.image.version "$IMAGE_VERSION"
+LABEL org.opencontainers.image.created "$IMAGE_CREATED"
+
+COPY --from=conda_base_debian_0 / /
 ARG USER_NAME
 ARG USER_GROUP
 ARG USER_GID
@@ -143,8 +149,3 @@ ENV CONDA_ENV_USER=
 USER 0:${USER_GID}
 WORKDIR /srv/conda
 ENTRYPOINT [ "init-env" ]
-LABEL org.opencontainers.image.authors "Joseph Burling"
-LABEL org.opencontainers.image.title "${CONDA_DIST}_base_debian_build"
-LABEL org.opencontainers.image.description "A debian-based conda python environment"
-LABEL org.opencontainers.image.version "$IMAGE_VERSION"
-LABEL org.opencontainers.image.created "$IMAGE_CREATED"
