@@ -1,0 +1,22 @@
+#! /bin/bash
+
+# Install apt pkgs from file
+# ==========================
+
+err_exit() {
+    echo "# !Error: $*"
+    exit 1
+}
+
+set -e
+
+APT_GET_DEPS="${1:-${APT_GET_DEPS}}"
+[[ -z "${APT_GET_DEPS}" ]] && APT_GET_DEPS="/srv/conda/apt_requirements.txt"
+[[ -f "${APT_GET_DEPS}" ]] || err_exit "file does not exist APT_GET_DEPS='$APT_GET_DEPS'"
+
+echo "# => Installing debian packages from '$APT_GET_DEPS': '$(cat "${APT_GET_DEPS}" | xargs)' ..."
+echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+apt-get update >/dev/null
+(cat "${APT_GET_DEPS}" | xargs apt-get -qq install -y) >/dev/null
+apt-get autoremove -y
+apt-get clean -y

@@ -90,9 +90,12 @@ RUN cat <<-EOF >> /srv/conda/environment.yml
 	  - pip
 EOF
 
-COPY --chown=0:${USER_GID} ./init-env ./init-new-user ./init-conda-env /usr/local/bin/
+COPY --chown=0:${USER_GID} \
+	./init-env ./init-apt-deps ./init-new-user ./init-conda-env \
+	/usr/local/bin/
 RUN chmod 770 \
 	/usr/local/bin/init-env \
+	/usr/local/bin/init-apt-deps \
 	/usr/local/bin/init-new-user \
 	/usr/local/bin/init-conda-env
 

@@ -17,6 +17,7 @@ set_conda_env_user_from_file() {
     if [[ "${CONDA_ENV_USER}" == "base" ]] || [[ -z "${CONDA_ENV_USER}" ]]; then
         export CONDA_ENV_USER=$(awk '/name\:/ {print;}' "${env_file}" |
             awk '{sub(/name\: /, "");} 1')
+        echo "# => Setting CONDA_ENV_USER=${CONDA_ENV_USER} ..."
         echo "export CONDA_ENV_USER=${CONDA_ENV_USER}" >>/etc/profile.d/conda.sh
     fi
 }
@@ -31,8 +32,6 @@ conda activate base >/dev/null
 CONDA_CMD=mamba
 command -v $CONDA_CMD &>/dev/null || CONDA_CMD=conda
 $CONDA_CMD env create --file "${CONDA_ENV_FILE}"
-
-echo "# => Setting CONDA_ENV_USER=${CONDA_ENV_USER} ..."
 set_conda_env_user_from_file "${CONDA_ENV_FILE}"
 
 echo "# => Switching to appropriate python environment and running command $* ..."
