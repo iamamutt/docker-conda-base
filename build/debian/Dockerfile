@@ -143,8 +143,8 @@ ENV CONDA_ENV_USER=
 USER 0:${USER_GID}
 WORKDIR /srv/conda
 ENTRYPOINT [ "init-env" ]
-LABEL org.opencontainers.image.authors="Joseph Burling"
-LABEL org.opencontainers.image.title="${CONDA_DIST}_base_debian_build"
-LABEL org.opencontainers.image.description="A debian-based conda python environment"
-LABEL org.opencontainers.image.version="$IMAGE_VERSION"
-LABEL org.opencontainers.image.created="$IMAGE_CREATED"
+LABEL org.opencontainers.image.authors "Joseph Burling"
+LABEL org.opencontainers.image.title "${CONDA_DIST}_base_debian_build"
+LABEL org.opencontainers.image.description "A debian-based conda python environment"
+LABEL org.opencontainers.image.version "$IMAGE_VERSION"
+LABEL org.opencontainers.image.created "$IMAGE_CREATED"
