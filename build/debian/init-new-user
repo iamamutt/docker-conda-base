@@ -48,13 +48,14 @@ if [[ ! $(id -u ${USER_NAME} 2>/dev/null) ]]; then
 fi
 
 # actual group name and number assigned to new user
-EST_NEW_GROUP_NAME=$(getent group $USER_NAME | cut -d: -f1)
-EST_NEW_GROUP_GID=$(getent group $USER_NAME | cut -d: -f3)
+USER_GID=$(id -g "${USER_NAME}")
+EST_NEW_GROUP_NAME=$(getent group ${USER_GID} | cut -d: -f1)
 
 # overwrite if different from specified
 if [[ ! "${EST_NEW_GROUP_NAME}" == "${USER_GROUP}" ]]; then
     USER_GROUP=${EST_NEW_GROUP_NAME}
 fi
+EST_NEW_GROUP_GID=$(getent group ${USER_GROUP} | cut -d: -f3)
 
 # add user to all other groups
 usermod -a -G users,sudo,${IMAGE_DEFAULT_GROUP},${USER_GROUP} ${USER_NAME} 2>/dev/null

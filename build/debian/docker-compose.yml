@@ -1,4 +1,4 @@
-# docker compose up --build -d
+# docker compose -p conda_base_dev up --build -d
 # docker ps -l --no-trunc
 # docker compose logs conda-base-dev
 version: "2.4"
@@ -15,4 +15,5 @@ services:
       dockerfile: Dockerfile
     init: true
     tty: true
-    command: "dev"
+    entrypoint: ["bash", "-lc"]
+    command: "tail -f /dev/null"
