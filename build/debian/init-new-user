@@ -10,38 +10,53 @@ err_exit() {
 
 set -e
 
+DEFAULT_USER_UID=$(id -u "${IMAGE_DEFAULT_USER}")
+DEFAULT_USER_GID=$(id -g "${IMAGE_DEFAULT_USER}")
+
 USER_NAME="${1:-${NEW_USER_NAME}}"
-[[ -z "${USER_NAME}" ]] && USER_NAME="${IMAGE_DEFAULT_USER}"
+USER_GROUP="${2:-${NEW_USER_GROUP}}"
+USER_UID=${3:-${NEW_USER_UID}}
+USER_GID=${4:-${NEW_USER_GID}}
+
+# empty user name uses image default
+[[ -z "${USER_NAME}" ]] && USER_NAME=$IMAGE_DEFAULT_USER
 [[ -z "${USER_NAME}" ]] && err_exit "Empty environment variable USER_NAME"
 
-USER_UID=${2:-${NEW_USER_UID}}
-[[ -z "${USER_UID}" ]] && USER_UID=1000
+# empty user id uses one above default
+[[ -z "${USER_UID}" ]] && USER_UID=$((DEFAULT_USER_UID + 1))
 
-USER_GID=${3:-${NEW_USER_GID}}
-[[ -z "${USER_GID}" ]] && USER_GID=$(id -g "${IMAGE_DEFAULT_USER}")
+# empty user group id uses default group id
+[[ -z "${USER_GID}" ]] && USER_GID=$DEFAULT_USER_GID
 [[ -z "${USER_GID}" ]] && err_exit "Empty environment variable USER_GID"
 
-USER_GROUP=${4:-${NEW_USER_GROUP}}
-[[ -z "${USER_GROUP}" ]] && USER_GROUP=${IMAGE_DEFAULT_GROUP}
+# empty user group name uses default group name
+[[ -z "${USER_GROUP}" ]] && USER_GROUP=$IMAGE_DEFAULT_GROUP
 [[ -z "${USER_GROUP}" ]] && err_exit "Empty environment variable USER_GROUP"
 
-if [[ ! ${USER_GID} -eq $(id -g "${IMAGE_DEFAULT_USER}") ]]; then
+# add new group if new id specified
+if [[ ! ${USER_GID} -eq ${DEFAULT_USER_GID} ]]; then
     [[ "${USER_GROUP}" == "${IMAGE_DEFAULT_GROUP}" ]] && err_exit \
         "Group name $USER_GROUP with new group id $USER_GID can't be the same as" \
         "existing group name and id:" \
-        "$IMAGE_DEFAULT_USER = $(id -g ${IMAGE_DEFAULT_USER})."
+        "${IMAGE_DEFAULT_GROUP} = ${DEFAULT_USER_GID}."
     groupadd --gid ${USER_GID} --force ${USER_GROUP}
-
 fi
 
+# add new user if not found
 if [[ ! $(id -u ${USER_NAME} 2>/dev/null) ]]; then
     useradd -u ${USER_UID} -g ${USER_GID} -ms /bin/bash ${USER_NAME}
 fi
 
-if [[ ! "$(getent group $(id -g ${USER_NAME}) | cut -d: -f1)" == "${USER_GROUP}" ]]; then
-    USER_GROUP=$(getent group ${USER_GID} | cut -d: -f1)
+# actual group name and number assigned to new user
+EST_NEW_GROUP_NAME=$(getent group $USER_NAME | cut -d: -f1)
+EST_NEW_GROUP_GID=$(getent group $USER_NAME | cut -d: -f3)
+
+# overwrite if different from specified
+if [[ ! "${EST_NEW_GROUP_NAME}" == "${USER_GROUP}" ]]; then
+    USER_GROUP=${EST_NEW_GROUP_NAME}
 fi
 
+# add user to all other groups
 usermod -a -G users,sudo,${IMAGE_DEFAULT_GROUP},${USER_GROUP} ${USER_NAME} 2>/dev/null
 
 echo "${USER_NAME}"
