@@ -1,8 +1,11 @@
-name: Docker Image CI
+name: Docker Conda Base Image CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - "!*"
+    tags:
+      - "v*"
 
 jobs:
   build_and_push:
