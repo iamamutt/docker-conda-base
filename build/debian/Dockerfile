@@ -50,6 +50,9 @@ ENV LC_ALL=en_US.utf8
 
 # Add directories, user/group ----------------------------------------------------------
 RUN	<<-EOF
+	rm /var/log/lastlog /var/log/faillog
+	ln -s /dev/null /var/log/lastlog
+	ln -s /dev/null /var/log/faillog
 	groupadd --gid ${USER_GID} --force ${USER_GROUP}
 	umask a+rwx,o-wx
 	mkdir -p ${CONDA_DIR} /srv/conda
@@ -59,8 +62,11 @@ RUN	<<-EOF
 	chmod -R 774 /etc/profile.d /var/log
 	echo ". '/etc/profile.d/conda.sh'\nconda activate base" |
 		tee -a /etc/skel/.bashrc /root/.bashrc
-	useradd --uid ${USER_UID} --gid ${USER_GID} \
+	useradd --uid ${USER_UID} --gid ${USER_GID} --no-log-init \
 		--create-home --groups users,sudo --shell /bin/bash ${USER_NAME}
+	rm /var/log/lastlog /var/log/faillog
+	touch /var/log/lastlog
+	touch /var/log/faillog
 	passwd -qd ${USER_NAME}
 	echo '${USER_NAME} ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 	install -m 770 /dev/null /usr/local/bin/conda-run

@@ -33,6 +33,11 @@ USER_GID=${4:-${NEW_USER_GID}}
 [[ -z "${USER_GROUP}" ]] && USER_GROUP=$IMAGE_DEFAULT_GROUP
 [[ -z "${USER_GROUP}" ]] && err_exit "Empty environment variable USER_GROUP"
 
+# workaround for 32-bit uid/gids for useradd, groupadd, usermod
+rm /var/log/lastlog /var/log/faillog
+ln -s /dev/null /var/log/lastlog
+ln -s /dev/null /var/log/faillog
+
 # add new group if new id specified
 if [[ ! ${USER_GID} -eq ${DEFAULT_USER_GID} ]]; then
     [[ "${USER_GROUP}" == "${IMAGE_DEFAULT_GROUP}" ]] && err_exit \
@@ -44,7 +49,7 @@ fi
 
 # add new user if not found
 if [[ ! $(id -u ${USER_NAME} 2>/dev/null) ]]; then
-    useradd -u ${USER_UID} -g ${USER_GID} -ms /bin/bash ${USER_NAME}
+    useradd -u ${USER_UID} -g ${USER_GID} --no-log-init -ms /bin/bash ${USER_NAME}
 fi
 
 # actual group name and number assigned to new user
@@ -59,5 +64,10 @@ EST_NEW_GROUP_GID=$(getent group ${USER_GROUP} | cut -d: -f3)
 
 # add user to all other groups
 usermod -a -G users,sudo,${IMAGE_DEFAULT_GROUP},${USER_GROUP} ${USER_NAME} 2>/dev/null
+
+# workaround for 32-bit uid/gids for useradd, groupadd, usermod
+rm /var/log/lastlog /var/log/faillog
+touch /var/log/lastlog
+touch /var/log/faillog
 
 echo "${USER_NAME}"

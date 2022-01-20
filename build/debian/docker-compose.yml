@@ -15,5 +15,5 @@ services:
       dockerfile: Dockerfile
     init: true
     tty: true
-    entrypoint: ["bash", "-lc"]
+    # entrypoint: ["bash", "-lc"]
     command: "tail -f /dev/null"
