@@ -1,9 +1,10 @@
-# docker compose -p conda_base_dev up --build -d
-# docker ps -l --no-trunc
-# docker compose logs conda-base-dev
+# docker compose -p condabase --verbose up -d --build --force-recreate --remove-orphans
+# docker ps -la --no-trunc
+# docker compose logs dev
+# docker exec -itu "501:20" condabase-dev-1 bash -l
 version: "2.4"
 services:
-  conda-base-dev:
+  dev:
     environment:
       NEW_USER_NAME: joseph
       NEW_USER_UID: 501
@@ -16,4 +17,4 @@ services:
     init: true
     tty: true
     # entrypoint: ["bash", "-lc"]
-    command: "tail -f /dev/null"
+    command: "tail -f /dev/null" # "dev" # "conda info -a" #

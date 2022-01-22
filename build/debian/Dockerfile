@@ -9,6 +9,7 @@ ARG TIMEZONE="America/Chicago"
 
 # Miniforge, Mambaforge, Miniforge-pypy3, Mambaforge-pypy3
 ARG CONDA_DIST=Mambaforge
+ARG CONDA_ROOT_DIR=/opt/local/conda
 
 ## Base conda build stage ==============================================================
 FROM debian:11-slim as conda_base_debian_0
@@ -20,13 +21,11 @@ ARG USER_UID
 ARG USER_GID
 ARG TIMEZONE
 ARG CONDA_DIST
+ARG CONDA_ROOT_DIR
 
 LABEL org.opencontainers.image.authors "Joseph Burling"
 LABEL org.opencontainers.image.title "${CONDA_DIST}_base_debian_0"
 LABEL org.opencontainers.image.description "A debian-based conda python environment (install)"
-
-ENV CONDA_DIR=/opt/local/conda
-ENV PATH=${CONDA_DIR}/bin:$PATH
 
 # set default shell to exit on first error
 SHELL [ "/bin/sh", "-e", "-c" ]
@@ -48,47 +47,81 @@ EOF
 ENV LANG=en_US.utf8
 ENV LC_ALL=en_US.utf8
 
-# Add directories, user/group ----------------------------------------------------------
+# Add default group --------------------------------------------------------------------
 RUN	<<-EOF
 	rm /var/log/lastlog /var/log/faillog
 	ln -s /dev/null /var/log/lastlog
 	ln -s /dev/null /var/log/faillog
 	groupadd --gid ${USER_GID} --force ${USER_GROUP}
-	umask a+rwx,o-wx
-	mkdir -p ${CONDA_DIR} /srv/conda
-	cd ${CONDA_DIR}
-	chown -R :${USER_GID} .*
 	chgrp --no-dereference ${USER_GID} /etc/profile.d /var/log
 	chmod -R 774 /etc/profile.d /var/log
-	echo ". '/etc/profile.d/conda.sh'\nconda activate base" |
-		tee -a /etc/skel/.bashrc /root/.bashrc
-	useradd --uid ${USER_UID} --gid ${USER_GID} --no-log-init \
-		--create-home --groups users,sudo --shell /bin/bash ${USER_NAME}
 	rm /var/log/lastlog /var/log/faillog
 	touch /var/log/lastlog
 	touch /var/log/faillog
-	passwd -qd ${USER_NAME}
-	echo '${USER_NAME} ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+EOF
+
+# Skeleton files for new users and root startup scripts --------------------------------
+RUN	<<-EOF
+	cd /etc/skel
+	echo "\n# >>> conda_base_debian >>>" | tee -a \
+		.bashrc .bash_profile /root/.bashrc /root/.bash_profile /root/.profile
+	echo ". '/etc/profile.d/conda.sh'" | tee -a \
+		.bashrc /root/.bashrc
+	echo "conda activate base" | tee -a \
+		.bashrc .bash_profile /root/.bashrc /root/.bash_profile /root/.profile
+	echo "# <<< conda_base_debian <<<" | tee -a \
+		.bashrc .bash_profile /root/.bashrc /root/.bash_profile /root/.profile
+	mkdir -p .config .cache .local/share .local/state .local/bin
+	chmod -R 600 .config .cache .local
+EOF
+
+# Add directories / files --------------------------------------------------------------
+
+# switch to default group for future permissions
+USER 0:${USER_GID}
+
+# switch to bash as default shell for the next RUN commands, conda already in PATH
+SHELL [ "/bin/bash", "-ec" ]
+
+# copy over initialization scripts
+COPY --chown=0:${USER_GID} \
+	./init-env ./init-apt-deps ./init-new-user ./init-conda-env \
+	/usr/local/bin/
+
+# change permissions for init scripts and conda dirs
+RUN	<<-EOF
+	umask a+rwx,o-wx
+	chmod 770 \
+		/usr/local/bin/init-env \
+		/usr/local/bin/init-apt-deps \
+		/usr/local/bin/init-new-user \
+		/usr/local/bin/init-conda-env
 	install -m 770 /dev/null /usr/local/bin/conda-run
+	chown :${USER_GID} /usr/local/bin/conda-run
+	mkdir -p ${CONDA_ROOT_DIR}/pkgs /srv/conda
+	cd ${CONDA_ROOT_DIR}
+	chown -R :${USER_GID} .*
 	install -m 644 /dev/null /srv/conda/apt_requirements.txt
 	install -m 644 /dev/null /srv/conda/environment.yml
-	chown :${USER_GID} /usr/local/bin/conda-run /srv/conda /srv/conda/*
+	chown :${USER_GID} /srv/conda /srv/conda/*
 EOF
 
 # Entrypoint to activate specific conda environment ------------------------------------
 RUN cat <<-'EOF' >> /usr/local/bin/conda-run
 	#! /bin/bash --login
+	echo ">> $0 $* --"
 	[ -z "$CONDA_ENV_USER" ] && CONDA_ENV_USER=base
 	set -eo pipefail
 	conda activate $CONDA_ENV_USER
-	exec -l "$@"
+	exec $@
 EOF
 
-# Default apt-get dependencies and conda environment files -----------------------------
+# Default apt-get dependencies ---------------------------------------------------------
 RUN cat <<-EOF >> /srv/conda/apt_requirements.txt
 	bash
 EOF
 
+# Default conda environment files ------------------------------------------------------
 RUN cat <<-EOF >> /srv/conda/environment.yml
 	name: default
 	dependencies:
@@ -96,41 +129,44 @@ RUN cat <<-EOF >> /srv/conda/environment.yml
 	  - pip
 EOF
 
-COPY --chown=0:${USER_GID} \
-	./init-env ./init-apt-deps ./init-new-user ./init-conda-env \
-	/usr/local/bin/
-RUN chmod 770 \
-	/usr/local/bin/init-env \
-	/usr/local/bin/init-apt-deps \
-	/usr/local/bin/init-new-user \
-	/usr/local/bin/init-conda-env
-
-# Install conda as user ----------------------------------------------------------------
-USER ${USER_UID}:${USER_GID}
+# Install conda ------------------------------------------------------------------------
 WORKDIR /srv/conda
-
-# switch to bash as default shell for the next RUN commands, conda already in PATH
-SHELL [ "/bin/bash", "-ec" ]
-
+ENV PATH=${CONDA_ROOT_DIR}/bin:$PATH
 RUN <<-EOF
 	URL=https://github.com/conda-forge/miniforge/releases/latest/download/${CONDA_DIST}-$(uname)-$(uname -m).sh
 	wget --no-hsts --quiet -O /srv/conda/conda_install.sh ${URL}
 	chmod +x /srv/conda/conda_install.sh
-	/srv/conda/conda_install.sh -vbup ${CONDA_DIR}
-	rm /srv/conda/conda_install.sh
-	find ${CONDA_DIR} -follow -type f -name '*.a' -delete
-	find ${CONDA_DIR} -follow -type f -name '*.pyc' -delete
-	find ${CONDA_DIR} -follow -type f -name '*.js.map' -delete
-	ln -s ${CONDA_DIR}/etc/profile.d/conda.sh /etc/profile.d/conda.sh
+	/srv/conda/conda_install.sh -vbup ${CONDA_ROOT_DIR}
+	ln -s ${CONDA_ROOT_DIR}/etc/profile.d/conda.sh /etc/profile.d/conda.sh
+	conda config --system --prepend envs_dirs ${CONDA_ROOT_DIR}/envs
+	conda config --system --prepend pkgs_dirs ${CONDA_ROOT_DIR}/pkgs
+	conda config --system --add channels conda-forge
+	conda config --system --append channels defaults
+	conda config --system --set pip_interop_enabled true
+	cp -f ${CONDA_ROOT_DIR}/.condarc /etc/skel/.condarc
+	cp -f ${CONDA_ROOT_DIR}/.condarc /root/.condarc
 	conda install -qy conda-build
-	conda config --add channels conda-forge
-	conda config --append channels defaults
-	conda config --set pip_interop_enabled true
 	conda clean -yiqaf
+	rm /srv/conda/conda_install.sh
+	find ${CONDA_ROOT_DIR} -follow -type f -name '*.a' -delete
+	find ${CONDA_ROOT_DIR} -follow -type f -name '*.pyc' -delete
+	find ${CONDA_ROOT_DIR} -follow -type f -name '*.js.map' -delete
+	mkdir -p ${CONDA_ROOT_DIR}/envs ${CONDA_ROOT_DIR}/pkgs
+	chmod 770 -R ${CONDA_ROOT_DIR}/envs ${CONDA_ROOT_DIR}/pkgs
+	chmod a+rwX,o-w ${CONDA_ROOT_DIR}/*
+EOF
+
+# Add default user ---------------------------------------------------------------------
+RUN	<<-EOF
+	export IMAGE_DEFAULT_USER_NAME=${USER_NAME}
+	export IMAGE_DEFAULT_USER_GROUP=${USER_GROUP}
+	init-new-user "${USER_NAME}" "${USER_GROUP}" ${USER_UID} ${USER_GID} true
 EOF
 
 ## Target stage ========================================================================
 FROM scratch as conda_base_debian
+COPY --from=conda_base_debian_0 / /
+
 ARG IMAGE_CREATED
 ARG IMAGE_VERSION
 ARG CONDA_DIST
@@ -140,17 +176,19 @@ LABEL org.opencontainers.image.description "A debian-based conda python environm
 LABEL org.opencontainers.image.version "$IMAGE_VERSION"
 LABEL org.opencontainers.image.created "$IMAGE_CREATED"
 
-COPY --from=conda_base_debian_0 / /
 ARG USER_NAME
 ARG USER_GROUP
+ARG CONDA_ROOT_DIR
 ARG TIMEZONE
 ENV TZ=${TIMEZONE}
 ENV LANG=en_US.utf8
 ENV LC_ALL=en_US.utf8
-ENV IMAGE_DEFAULT_USER=${USER_NAME}
-ENV IMAGE_DEFAULT_GROUP=${USER_GROUP}
-ENV CONDA_DIR=/opt/local/conda
+ENV IMAGE_DEFAULT_USER_NAME=${USER_NAME}
+ENV IMAGE_DEFAULT_USER_GROUP=${USER_GROUP}
+ENV CONDA_DIR=${CONDA_ROOT_DIR}
+ENV CONDA_ROOT=${CONDA_ROOT_DIR}
 ENV CONDA_ENV_USER=
+
 USER root:${USER_GROUP}
 WORKDIR /srv/conda
 ENTRYPOINT [ "init-env" ]

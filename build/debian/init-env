@@ -3,14 +3,35 @@
 # New User/Apt/Conda Env Initialization
 # =====================================
 
-err_exit() {
-    echo "# !Error: $*"
-    exit 1
-}
-
 set -e
 init-apt-deps
-export USER_NAME=$(init-new-user)
-echo "# => Switching to user '$USER_NAME' and running: init-conda-env $* ..."
-su ${USER_NAME} -p -s /bin/bash -c \
-    'HOME="/home/${USER_NAME}" init-conda-env "$@"' -- "init-conda-env" "$@"
+init-new-user
+
+_USER_INFO=$(cat /tmp/init-new-user.lastlog)
+export _USER_NAME=$(echo $_USER_INFO | cut -d: -f1)
+export _USER_GROUP=$(echo $_USER_INFO | cut -d: -f3)
+
+if [[ -z "${_USER_NAME}" ]]; then
+    echo "# ~Warning: user $_USER_NAME not found!"
+    if [[ ${#@} -gt 0 ]]; then
+        echo "running '$*' as '$(id -un)'"
+        if [[ "$1" == "dev" ]]; then
+            conda-run tail -f /dev/null
+        else
+            conda-run "$@"
+        fi
+    fi
+    exit 0
+fi
+
+sudo --preserve-env --set-home --non-interactive \
+    -u $_USER_NAME -g $_USER_GROUP bash -- <<EOF
+init-conda-env
+if [[ ${#@} -gt 0 ]]; then
+    if [[ "$1" == "dev" ]]; then
+        conda-run tail -f /dev/null
+    else
+        conda-run "$@"
+    fi
+fi
+EOF
