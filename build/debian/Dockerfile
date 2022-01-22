@@ -98,7 +98,7 @@ RUN	<<-EOF
 		/usr/local/bin/init-conda-env
 	install -m 770 /dev/null /usr/local/bin/conda-run
 	chown :${USER_GID} /usr/local/bin/conda-run
-	mkdir -p ${CONDA_ROOT_DIR}/pkgs /srv/conda
+	mkdir -p ${CONDA_ROOT_DIR}/envs ${CONDA_ROOT_DIR}/pkgs /srv/conda
 	cd ${CONDA_ROOT_DIR}
 	chown -R :${USER_GID} .*
 	install -m 644 /dev/null /srv/conda/apt_requirements.txt
@@ -151,7 +151,6 @@ RUN <<-EOF
 	find ${CONDA_ROOT_DIR} -follow -type f -name '*.a' -delete
 	find ${CONDA_ROOT_DIR} -follow -type f -name '*.pyc' -delete
 	find ${CONDA_ROOT_DIR} -follow -type f -name '*.js.map' -delete
-	mkdir -p ${CONDA_ROOT_DIR}/envs ${CONDA_ROOT_DIR}/pkgs
 	chmod 770 -R ${CONDA_ROOT_DIR}/envs ${CONDA_ROOT_DIR}/pkgs
 	chmod a+rwX,o-w ${CONDA_ROOT_DIR}/*
 EOF
