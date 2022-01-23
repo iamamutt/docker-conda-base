@@ -36,7 +36,8 @@ RUN <<-EOF
 	mkdir -p /usr/share/man/man1
 	echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 	apt-get update
-	apt-get -qq install -y apt-utils locales wget ca-certificates sudo
+	apt-get -qq install --no-install-recommends -y \
+		apt-utils locales wget ca-certificates sudo
 	localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 	ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime
 	echo ${TZ} > /etc/timezone
@@ -98,12 +99,10 @@ RUN	<<-EOF
 		/usr/local/bin/init-conda-env
 	install -m 770 /dev/null /usr/local/bin/conda-run
 	chown :${USER_GID} /usr/local/bin/conda-run
-	mkdir -p ${CONDA_ROOT_DIR}/envs ${CONDA_ROOT_DIR}/pkgs /srv/conda
-	cd ${CONDA_ROOT_DIR}
-	chown -R :${USER_GID} .*
+	mkdir -p /srv/conda
 	install -m 644 /dev/null /srv/conda/apt_requirements.txt
 	install -m 644 /dev/null /srv/conda/environment.yml
-	chown :${USER_GID} /srv/conda /srv/conda/*
+	chown -R :${USER_GID} /srv
 EOF
 
 # Entrypoint to activate specific conda environment ------------------------------------
@@ -133,10 +132,18 @@ EOF
 WORKDIR /srv/conda
 ENV PATH=${CONDA_ROOT_DIR}/bin:$PATH
 RUN <<-EOF
+	mkdir -p ${CONDA_ROOT_DIR}
 	URL=https://github.com/conda-forge/miniforge/releases/latest/download/${CONDA_DIST}-$(uname)-$(uname -m).sh
 	wget --no-hsts --quiet -O /srv/conda/conda_install.sh ${URL}
 	chmod +x /srv/conda/conda_install.sh
 	/srv/conda/conda_install.sh -vbup ${CONDA_ROOT_DIR}
+	rm /srv/conda/conda_install.sh
+	conda install -qy conda-build
+EOF
+
+# Post install steps -------------------------------------------------------------------
+RUN <<-EOF
+	conda clean -yiqaf
 	ln -s ${CONDA_ROOT_DIR}/etc/profile.d/conda.sh /etc/profile.d/conda.sh
 	conda config --system --prepend envs_dirs ${CONDA_ROOT_DIR}/envs
 	conda config --system --prepend pkgs_dirs ${CONDA_ROOT_DIR}/pkgs
@@ -145,14 +152,13 @@ RUN <<-EOF
 	conda config --system --set pip_interop_enabled true
 	cp -f ${CONDA_ROOT_DIR}/.condarc /etc/skel/.condarc
 	cp -f ${CONDA_ROOT_DIR}/.condarc /root/.condarc
-	conda install -qy conda-build
-	conda clean -yiqaf
-	rm /srv/conda/conda_install.sh
 	find ${CONDA_ROOT_DIR} -follow -type f -name '*.a' -delete
 	find ${CONDA_ROOT_DIR} -follow -type f -name '*.pyc' -delete
 	find ${CONDA_ROOT_DIR} -follow -type f -name '*.js.map' -delete
+	mkdir -p ${CONDA_ROOT_DIR}/envs ${CONDA_ROOT_DIR}/pkgs
 	chmod 770 -R ${CONDA_ROOT_DIR}/envs ${CONDA_ROOT_DIR}/pkgs
 	chmod a+rwX,o-w ${CONDA_ROOT_DIR}/*
+	chown :${USER_GID} ${CONDA_ROOT_DIR}/*
 EOF
 
 # Add default user ---------------------------------------------------------------------

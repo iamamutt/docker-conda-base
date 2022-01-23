@@ -1,13 +1,11 @@
 # conda-forge based environment for pre-built pkgs of other architectures like aarch64
 # NOTES:
-#   - Recommended to install conda-build in base environment first
-#       conda install -qy conda-build
-#   - Recommended to use mambaforge w/ mamba
 #   - Recommended config settings:
 #       conda config --remove-key channels
 #       conda config --append channels conda-forge --append channels defaults
 #       conda config --set channel_priority strict
 #
+#   - Recommended to use mambaforge w/ mamba
 #   - Install environment with:
 #       mamba clean -yiqaf
 #       mamba env create -vvv --force -f environment.yml
@@ -16,7 +14,7 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.9.*     # minimum python version
+  - python=3.*       # minimum python version
   - pip>=21.1        # no setup.py required
   - flake8           # dev
   - jupyterlab       # science
