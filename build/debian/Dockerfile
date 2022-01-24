@@ -68,8 +68,6 @@ RUN	<<-EOF
 		.bashrc .bash_profile /root/.bashrc /root/.bash_profile /root/.profile
 	echo ". '/etc/profile.d/conda.sh'" | tee -a \
 		.bashrc /root/.bashrc
-	echo "conda activate base" | tee -a \
-		.bashrc .bash_profile /root/.bashrc /root/.bash_profile /root/.profile
 	echo "# <<< conda_base_debian <<<" | tee -a \
 		.bashrc .bash_profile /root/.bashrc /root/.bash_profile /root/.profile
 	mkdir -p .config .cache .local/share .local/state .local/bin
@@ -98,7 +96,7 @@ RUN	<<-EOF
 		/usr/local/bin/init-new-user \
 		/usr/local/bin/init-conda-env
 	install -m 755 /dev/null /usr/local/bin/conda-run
-	chown :${USER_GID} /usr/local/bin/conda-run
+	chown 0:${USER_GID} /usr/local/bin/conda-run
 	mkdir -p /srv/conda
 	install -m 664 /dev/null /srv/conda/apt_requirements.txt
 	install -m 664 /dev/null /srv/conda/environment.yml
@@ -145,6 +143,7 @@ EOF
 # Post install steps -------------------------------------------------------------------
 RUN <<-EOF
 	conda clean -yiqaf
+	chmod 755 ${CONDA_ROOT_DIR}/etc/profile.d/conda.sh
 	ln -s ${CONDA_ROOT_DIR}/etc/profile.d/conda.sh /etc/profile.d/conda.sh
 	conda config --system --prepend envs_dirs ${CONDA_ROOT_DIR}/envs
 	conda config --system --prepend pkgs_dirs ${CONDA_ROOT_DIR}/pkgs
