@@ -4,58 +4,58 @@
 # ===========================================
 
 err_exit() {
-    echo "# !Error: $*"
-    exit 1
+	echo "# !Error: $*"
+	exit 1
 }
 
 # function to append text to a matched line number
 append_at_line_match() {
-    local pattern="$1"
-    local append="$2"
-    local file="$3"
-    local ln=$(awk -v pat="$pattern" '$0~pat{print NR}' "$file")
-    sed -i "$ln i $append" "$file"
+	local pattern="$1"
+	local append="$2"
+	local file="$3"
+	local ln=$(awk -v pat="$pattern" '$0~pat{print NR}' "$file")
+	sed -i "$ln i $append" "$file"
 }
 
 # function to create a new conda environment with mamba or conda from yaml file
 create_new_conda_env() {
-    set -e
-    export CONDA_ENV_FILE=${1:-/srv/conda/environment.yml}
-    [[ -f "${CONDA_ENV_FILE}" ]] ||
-        err_exit "env file does not exist: CONDA_ENV_FILE='$CONDA_ENV_FILE'"
+	set -e
+	export CONDA_ENV_FILE=${1:-/srv/conda/environment.yml}
+	[[ -f "${CONDA_ENV_FILE}" ]] ||
+		err_exit "env file does not exist: CONDA_ENV_FILE='$CONDA_ENV_FILE'"
 
-    # check that conda is installed
-    conda activate base >/dev/null
+	# check that conda is installed
+	conda activate base >/dev/null
 
-    # check if mamba is installed, else use conda
-    CONDA_CMD=mamba
-    command -v $CONDA_CMD &>/dev/null || CONDA_CMD=conda
-    conda info -a >"${HOME}/init-conda-env.log"
-    echo "# => Installing new conda virtual environment from $CONDA_ENV_FILE ..."
-    $CONDA_CMD env create -q --file "${CONDA_ENV_FILE}"
+	# check if mamba is installed, else use conda
+	CONDA_CMD=mamba
+	command -v $CONDA_CMD &>/dev/null || CONDA_CMD=conda
+	conda info -a >"${HOME}/init-conda-env.log"
+	echo "# => Installing new conda virtual environment from $CONDA_ENV_FILE ..."
+	$CONDA_CMD env create -q --file "${CONDA_ENV_FILE}"
 }
 
 # function to set CONDA_ENV_USER based on .yml environment file
 set_conda_env_user_from_file() {
-    local env_file="${1:-${CONDA_ENV_FILE}}"
-    export CONDA_ENV_USER=${CONDA_ENV_USER:-"base"}
-    if [[ -z "${CONDA_ENV_USER}" ]] || [[ "${CONDA_ENV_USER}" == "base" ]]; then
-        export CONDA_ENV_USER=$(awk '/name\:/ {print;}' "${env_file}" |
-            awk '{sub(/name\: /, "");} 1')
-        [[ -z "${CONDA_ENV_USER}" ]] && err_exit \
-            "Could not parse conda env name from file: $env_file"
-        echo "# => Setting CONDA_ENV_USER=${CONDA_ENV_USER} ..."
-        append_at_line_match "# <<< conda_base_debian <<<" \
-            "export CONDA_ENV_USER=${CONDA_ENV_USER}" "${HOME}/.bashrc"
-        append_at_line_match "# <<< conda_base_debian <<<" \
-            "export CONDA_ENV_USER=${CONDA_ENV_USER}" "${HOME}/.bash_profile"
-    fi
+	local env_file="${1:-${CONDA_ENV_FILE}}"
+	export CONDA_ENV_USER=${CONDA_ENV_USER:-"base"}
+	if [[ -z "${CONDA_ENV_USER}" ]] || [[ "${CONDA_ENV_USER}" == "base" ]]; then
+		export CONDA_ENV_USER=$(awk '/name\:/ {print;}' "${env_file}" |
+			awk '{sub(/name\: /, "");} 1')
+		[[ -z "${CONDA_ENV_USER}" ]] && err_exit \
+			"Could not parse conda env name from file: $env_file"
+		echo "# => Setting CONDA_ENV_USER=${CONDA_ENV_USER} ..."
+		append_at_line_match "# <<< conda_base_debian <<<" \
+			"export CONDA_ENV_USER=${CONDA_ENV_USER}" "${HOME}/.bashrc"
+		append_at_line_match "# <<< conda_base_debian <<<" \
+			"export CONDA_ENV_USER=${CONDA_ENV_USER}" "${HOME}/.bash_profile"
+	fi
 
-    # check that environment activates
-    conda activate ${CONDA_ENV_USER} >/dev/null
-    echo "----${CONDA_ENV_USER}----" >>"${HOME}/init-conda-env.log"
-    conda info -a >>"${HOME}/init-conda-env.log"
-    conda env export -f "${HOME}/${CONDA_ENV_USER}.lock.yml" --no-builds -q
+	# check that environment activates
+	conda activate ${CONDA_ENV_USER} >/dev/null
+	echo "----${CONDA_ENV_USER}----" >>"${HOME}/init-conda-env.log"
+	conda info -a >>"${HOME}/init-conda-env.log"
+	conda env export -f "${HOME}/${CONDA_ENV_USER}.lock.yml" --no-builds -q
 }
 
 create_new_conda_env "${CONDA_ENV_FILE}"

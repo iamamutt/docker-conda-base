@@ -3,35 +3,40 @@
 # New User/Apt/Conda Env Initialization
 # =====================================
 
+err_exit() {
+	echo "# !Error: $*"
+	exit 1
+}
+
+if [[ ${#@} -gt 0 ]]; then
+	if [[ "$1" == "dev" ]]; then
+		args=(tail -f /dev/null)
+	else
+		args=("$@")
+	fi
+fi
+
 set -e
 init-apt-deps
 init-new-user
 
-_USER_INFO=$(cat /tmp/init-new-user.lastlog)
+_NEW_USER_FILE=/tmp/init-new-user.lastlog
+[[ ! -f ${_NEW_USER_FILE} ]] && err_exit "file '${_NEW_USER_FILE}'" \
+	"generated from 'init-new-user' script not found."
+_USER_INFO=$(cat ${_NEW_USER_FILE})
 export _USER_NAME=$(echo $_USER_INFO | cut -d: -f1)
 export _USER_GROUP=$(echo $_USER_INFO | cut -d: -f3)
 
 if [[ -z "${_USER_NAME}" ]]; then
-    echo "# ~Warning: user $_USER_NAME not found!"
-    if [[ ${#@} -gt 0 ]]; then
-        echo "running '$*' as '$(id -un)'"
-        if [[ "$1" == "dev" ]]; then
-            conda-run tail -f /dev/null
-        else
-            conda-run "$@"
-        fi
-    fi
-    exit 0
+	echo "# ~Warning: user $_USER_NAME not found!"
+	echo "running '$*' as '$(id -un)'"
+	exec conda-run "${args[@]}"
 fi
 
-sudo --preserve-env --set-home --non-interactive \
-    -u $_USER_NAME -g $_USER_GROUP bash -- <<EOF
-init-conda-env
-if [[ ${#@} -gt 0 ]]; then
-    if [[ "$1" == "dev" ]]; then
-        conda-run tail -f /dev/null
-    else
-        conda-run "$@"
-    fi
-fi
-EOF
+sudo --preserve-env --set-home --non-interactive -u $_USER_NAME -g $_USER_GROUP \
+	bash -c 'init-conda-env'
+
+exec sudo --preserve-env --set-home --non-interactive -u $_USER_NAME -g $_USER_GROUP \
+	bash -s "${args[@]}" <<-'EOF'
+		conda-run "$@"
+	EOF

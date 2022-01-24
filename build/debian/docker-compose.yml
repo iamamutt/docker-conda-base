@@ -10,6 +10,7 @@ services:
       NEW_USER_UID: 501
       NEW_USER_GROUP: staff
       NEW_USER_GID: 20
+      NEW_USER_SUDO: "true"
     image: conda_base_dev:v0.0.0a
     build:
       context: .

@@ -33,7 +33,7 @@ SHELL [ "/bin/sh", "-e", "-c" ]
 # Install linux dependencies -----------------------------------------------------------
 ENV TZ=${TIMEZONE}
 RUN <<-EOF
-	mkdir -p /usr/share/man/man1
+	mkdir -p -m 6775 /usr/share/man/man1
 	echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 	apt-get update
 	apt-get -qq install --no-install-recommends -y \
@@ -108,11 +108,11 @@ EOF
 # Entrypoint to activate specific conda environment ------------------------------------
 RUN cat <<-'EOF' >> /usr/local/bin/conda-run
 	#! /bin/bash --login
-	echo ">> $0 $* --"
+	echo ">> $0 $*"
 	[ -z "$CONDA_ENV_USER" ] && CONDA_ENV_USER=base
 	set -eo pipefail
 	conda activate $CONDA_ENV_USER
-	exec $@
+	"$@"
 EOF
 
 # Default apt-get dependencies ---------------------------------------------------------
@@ -133,6 +133,7 @@ WORKDIR /srv/conda
 ENV PATH=${CONDA_ROOT_DIR}/bin:$PATH
 RUN <<-EOF
 	mkdir -p ${CONDA_ROOT_DIR}
+	chmod 6775 ${CONDA_ROOT_DIR}
 	URL=https://github.com/conda-forge/miniforge/releases/latest/download/${CONDA_DIST}-$(uname)-$(uname -m).sh
 	wget --no-hsts --quiet -O /srv/conda/conda_install.sh ${URL}
 	chmod +x /srv/conda/conda_install.sh
@@ -150,15 +151,15 @@ RUN <<-EOF
 	conda config --system --add channels conda-forge
 	conda config --system --append channels defaults
 	conda config --system --set pip_interop_enabled true
-	cp -f ${CONDA_ROOT_DIR}/.condarc /etc/skel/.condarc
-	cp -f ${CONDA_ROOT_DIR}/.condarc /root/.condarc
-	find ${CONDA_ROOT_DIR} -follow -type f -name '*.a' -delete
-	find ${CONDA_ROOT_DIR} -follow -type f -name '*.pyc' -delete
-	find ${CONDA_ROOT_DIR} -follow -type f -name '*.js.map' -delete
-	mkdir -p ${CONDA_ROOT_DIR}/envs ${CONDA_ROOT_DIR}/pkgs
-	chmod 770 -R ${CONDA_ROOT_DIR}/envs ${CONDA_ROOT_DIR}/pkgs
-	chmod a+rwX,o-w ${CONDA_ROOT_DIR}/*
-	chown :${USER_GID} ${CONDA_ROOT_DIR}/*
+	cd ${CONDA_ROOT_DIR}
+	cp -f ./.condarc /etc/skel/.condarc
+	cp -f ./.condarc /root/.condarc
+	find . -follow -type f -name '*.a' -delete
+	find . -follow -type f -name '*.pyc' -delete
+	find . -follow -type f -name '*.js.map' -delete
+	mkdir -p envs pkgs
+	chown 0:${USER_GID} . ./* ./.*
+	chmod a+rwX,o-w,ug+s,+t,-t . ./* ./.*
 EOF
 
 # Add default user ---------------------------------------------------------------------

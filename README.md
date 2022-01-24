@@ -64,6 +64,11 @@ docker run --name conda_base_python -itd --init myimage:latest dev
 The following environment variables can be set when starting the container from the build image.
 
 `NEW_USER_NAME` : Name of the new user
+
 `NEW_USER_GROUP` : Name of the new group (default=condauser)
+
 `NEW_USER_UID` :  The id number to set for the new user (default=1000)
+
 `NEW_USER_GID` :  New user's group id (default=1000)
+
+`NEW_USER_SUDO` :  Set to `true` to enable `sudo` for new user (default=`false`)

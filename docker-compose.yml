@@ -7,7 +7,7 @@
 
 version: "2.4"
 services:
-  python:
+  conda-python:
     volumes:
       - ./share:/srv/conda
     environment:
