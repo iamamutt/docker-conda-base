@@ -92,16 +92,16 @@ COPY --chown=0:${USER_GID} \
 # change permissions for init scripts and conda dirs
 RUN	<<-EOF
 	umask a+rwx,o-wx
-	chmod 770 \
+	chmod 775 \
 		/usr/local/bin/init-env \
 		/usr/local/bin/init-apt-deps \
 		/usr/local/bin/init-new-user \
 		/usr/local/bin/init-conda-env
-	install -m 770 /dev/null /usr/local/bin/conda-run
+	install -m 755 /dev/null /usr/local/bin/conda-run
 	chown :${USER_GID} /usr/local/bin/conda-run
 	mkdir -p /srv/conda
-	install -m 644 /dev/null /srv/conda/apt_requirements.txt
-	install -m 644 /dev/null /srv/conda/environment.yml
+	install -m 664 /dev/null /srv/conda/apt_requirements.txt
+	install -m 664 /dev/null /srv/conda/environment.yml
 	chown -R :${USER_GID} /srv
 EOF
 
