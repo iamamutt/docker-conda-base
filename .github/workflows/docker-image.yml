@@ -37,14 +37,6 @@ jobs:
           driver-opts: |
             image=moby/buildkit:buildx-stable-1
 
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
@@ -55,7 +47,7 @@ jobs:
         uses: docker/login-action@v1
         with:
           registry: ghcr.io
-          username: ${{ github.repository_owner }}
+          username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
@@ -65,8 +57,8 @@ jobs:
           build-args: |
             IMAGE_CREATED=${{ steps.timestamp.outputs.date }}
             IMAGE_VERSION=${{ steps.previoustag.outputs.tag }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           context: ./build/debian
           file: ./build/debian/Dockerfile
           platforms: linux/arm64,linux/amd64
@@ -74,9 +66,8 @@ jobs:
           tags: |
             ${{ secrets.DOCKER_HUB_USERNAME }}/conda_base:latest
             ${{ secrets.DOCKER_HUB_USERNAME }}/conda_base:${{ steps.previoustag.outputs.tag }}
-            ghcr.io/${{ github.repository_owner }}/conda_base:latest
-            ghcr.io/${{ github.repository_owner }}/conda_base:${{ steps.previoustag.outputs.tag }}
-
+            ghcr.io/${{ github.actor }}/conda_base:latest
+            ghcr.io/${{ github.actor }}/conda_base:${{ steps.previoustag.outputs.tag }}
           target: conda_base_debian
 
       - name: Image digest

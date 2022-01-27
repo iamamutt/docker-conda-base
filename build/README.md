@@ -2,6 +2,13 @@
 
 This is a Docker image for building a base conda environment
 
+## Docker compose
+
+```bash
+cd build/debian
+docker compose -p condabase --verbose up -d --build --force-recreate --remove-orphans
+```
+
 ## Docker build
 
 Build using the command below. Make sure to change the platform to whatever you need, e.g., `linux/arm64`, `linux/amd64`, etc...

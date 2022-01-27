@@ -67,8 +67,22 @@ The following environment variables can be set when starting the container from 
 
 `NEW_USER_GROUP` : Name of the new group (default=condauser)
 
-`NEW_USER_UID` :  The id number to set for the new user (default=1000)
+`NEW_USER_UID` : The id number to set for the new user (default=1000)
 
-`NEW_USER_GID` :  New user's group id (default=1000)
+`NEW_USER_GID` : New user's group id (default=1000)
 
-`NEW_USER_SUDO` :  Set to `true` to enable `sudo` for new user (default=`false`)
+`NEW_USER_SUDO` : Set to `true` to enable `sudo` for new user (default=`false`)
+
+## Conda permissions
+
+`root` can update the base conda environment
+
+`user:condauser` can create new environments and edit those but not the base conda environment
+
+`user:user` can use existing conda environments but not create new ones or edit existing environments
+
+|                          | `root` | `user:condauser` | `user:user` |
+| :----------------------- | :----: | :--------------: | :---------: |
+| update `base` env        |   ✅   |        ❌        |     ❌      |
+| create/update other envs |   ✅   |        ✅        |     ❌      |
+| use existing envs        |   ✅   |        ✅        |     ✅      |

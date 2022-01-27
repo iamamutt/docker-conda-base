@@ -1,7 +1,7 @@
 # docker compose -p condabase --verbose up -d --build --force-recreate --remove-orphans
 # docker ps -la --no-trunc
 # docker compose logs dev
-# docker exec -itu "501:20" condabase-dev-1 bash -l
+# docker exec -itu "501:20" condabase-dev-1 bash
 version: "2.4"
 services:
   dev:

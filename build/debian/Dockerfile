@@ -54,24 +54,22 @@ RUN	<<-EOF
 	ln -s /dev/null /var/log/lastlog
 	ln -s /dev/null /var/log/faillog
 	groupadd --gid ${USER_GID} --force ${USER_GROUP}
-	chgrp --no-dereference ${USER_GID} /etc/profile.d /var/log
-	chmod -R 774 /etc/profile.d /var/log
 	rm /var/log/lastlog /var/log/faillog
 	touch /var/log/lastlog
 	touch /var/log/faillog
+	chmod -R 775 /var/log
 EOF
 
 # Skeleton files for new users and root startup scripts --------------------------------
 RUN	<<-EOF
 	cd /etc/skel
 	echo "\n# >>> conda_base_debian >>>" | tee -a \
-		.bashrc .bash_profile /root/.bashrc /root/.bash_profile /root/.profile
+		.bashrc .bash_profile /root/.bashrc /root/.bash_profile /root/.profile >/dev/null
 	echo ". '/etc/profile.d/conda.sh'" | tee -a \
-		.bashrc /root/.bashrc
+		.bashrc /root/.bashrc >/dev/null
 	echo "# <<< conda_base_debian <<<" | tee -a \
-		.bashrc .bash_profile /root/.bashrc /root/.bash_profile /root/.profile
+		.bashrc .bash_profile /root/.bashrc /root/.bash_profile /root/.profile >/dev/null
 	mkdir -p .config .cache .local/share .local/state .local/bin
-	chmod -R 600 .config .cache .local
 EOF
 
 # Add directories / files --------------------------------------------------------------
@@ -89,15 +87,13 @@ COPY --chown=0:${USER_GID} \
 
 # change permissions for init scripts and conda dirs
 RUN	<<-EOF
-	umask a+rwx,o-wx
 	chmod 775 \
 		/usr/local/bin/init-env \
 		/usr/local/bin/init-apt-deps \
 		/usr/local/bin/init-new-user \
 		/usr/local/bin/init-conda-env
 	install -m 755 /dev/null /usr/local/bin/conda-run
-	chown 0:${USER_GID} /usr/local/bin/conda-run
-	mkdir -p /srv/conda
+	mkdir -p -m 775 /srv/conda
 	install -m 664 /dev/null /srv/conda/apt_requirements.txt
 	install -m 664 /dev/null /srv/conda/environment.yml
 	chown -R :${USER_GID} /srv
@@ -107,7 +103,7 @@ EOF
 RUN cat <<-'EOF' >> /usr/local/bin/conda-run
 	#! /bin/bash --login
 	echo ">> $0 $*"
-	[ -z "$CONDA_ENV_USER" ] && CONDA_ENV_USER=base
+	[ -z "$CONDA_ENV_USER" ] && export CONDA_ENV_USER=base
 	set -eo pipefail
 	conda activate $CONDA_ENV_USER
 	"$@"
@@ -143,7 +139,7 @@ EOF
 # Post install steps -------------------------------------------------------------------
 RUN <<-EOF
 	conda clean -yiqaf
-	chmod 755 ${CONDA_ROOT_DIR}/etc/profile.d/conda.sh
+	chmod -R 755 ${CONDA_ROOT_DIR}/etc/profile.d
 	ln -s ${CONDA_ROOT_DIR}/etc/profile.d/conda.sh /etc/profile.d/conda.sh
 	conda config --system --prepend envs_dirs ${CONDA_ROOT_DIR}/envs
 	conda config --system --prepend pkgs_dirs ${CONDA_ROOT_DIR}/pkgs
