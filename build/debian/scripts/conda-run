@@ -1,0 +1,8 @@
+#! /bin/bash --login
+
+# Entrypoint to activate specific conda environment before running a command
+
+[ -z "$CONDA_ENV_USER" ] && export CONDA_ENV_USER=base
+set -eo pipefail
+conda activate $CONDA_ENV_USER
+"$@"

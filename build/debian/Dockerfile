@@ -81,32 +81,15 @@ USER 0:${USER_GID}
 SHELL [ "/bin/bash", "-ec" ]
 
 # copy over initialization scripts
-COPY --chown=0:${USER_GID} \
-	./init-env ./init-apt-deps ./init-new-user ./init-conda-env \
-	/usr/local/bin/
+COPY --chown=0:${USER_GID} ./scripts/ /usr/local/bin/
 
 # change permissions for init scripts and conda dirs
 RUN	<<-EOF
-	chmod 775 \
-		/usr/local/bin/init-env \
-		/usr/local/bin/init-apt-deps \
-		/usr/local/bin/init-new-user \
-		/usr/local/bin/init-conda-env
-	install -m 755 /dev/null /usr/local/bin/conda-run
+	chmod -R 775 /usr/local/bin
 	mkdir -p -m 775 /srv/conda
 	install -m 664 /dev/null /srv/conda/apt_requirements.txt
 	install -m 664 /dev/null /srv/conda/environment.yml
 	chown -R :${USER_GID} /srv
-EOF
-
-# Entrypoint to activate specific conda environment ------------------------------------
-RUN cat <<-'EOF' >> /usr/local/bin/conda-run
-	#! /bin/bash --login
-	echo ">> $0 $*"
-	[ -z "$CONDA_ENV_USER" ] && export CONDA_ENV_USER=base
-	set -eo pipefail
-	conda activate $CONDA_ENV_USER
-	"$@"
 EOF
 
 # Default apt-get dependencies ---------------------------------------------------------
