@@ -45,8 +45,12 @@ echo "default user info ->" \
 # empty user id uses one above default
 [[ -z "${ARG_UID}" ]] && ARG_UID=$((DEFAULT_UID + 1))
 
-# empty user group id uses default group id
-[[ -z "${ARG_GID}" ]] && ARG_GID=${DEFAULT_GID}
+# new gid not specified, check if using default gid or create a new gid
+if [[ -z "${ARG_GID}" ]]; then
+	[[ "${ARG_GROUP}" = "${DEFAULT_GROUP}" ]] &&
+		ARG_GID=${DEFAULT_GID} ||
+		ARG_GID=$((DEFAULT_GID + 1))
+fi
 
 # workaround for 32-bit uid/gids for useradd, groupadd, usermod
 rm /var/log/lastlog /var/log/faillog
@@ -55,9 +59,9 @@ ln -s /dev/null /var/log/faillog
 
 # add new group if new id specified
 if [[ ! ${ARG_GID} -eq ${DEFAULT_GID} ]]; then
-	[[ "${ARG_GROUP}" == "${DEFAULT_GROUP}" ]] && err_exit \
-		"group name '$ARG_GROUP' with gid '$ARG_GID' can't be the same as" \
-		"existing group: gid=${DEFAULT_GID}(${DEFAULT_GROUP})."
+	[[ "${ARG_GROUP}" = "${DEFAULT_GROUP}" ]] &&
+		err_exit "group name '$ARG_GROUP' with gid '$ARG_GID' can't be the same" \
+			"as existing group: gid=${DEFAULT_GID}(${DEFAULT_GROUP})."
 	groupadd --gid ${ARG_GID} --force ${ARG_GROUP}
 fi
 
@@ -74,7 +78,7 @@ ARG_GID=$(id -g "${ARG_NAME}")
 EST_NEW_GROUP_NAME=$(getent group ${ARG_GID} | cut -d: -f1)
 
 # overwrite groupname if different from specified
-if [[ ! "${EST_NEW_GROUP_NAME}" == "${ARG_GROUP}" ]]; then
+if [[ ! "${EST_NEW_GROUP_NAME}" = "${ARG_GROUP}" ]]; then
 	ARG_GROUP=${EST_NEW_GROUP_NAME}
 fi
 EST_NEW_GROUP_GID=$(getent group ${ARG_GROUP} | cut -d: -f3)
@@ -83,7 +87,7 @@ EST_NEW_GROUP_GID=$(getent group ${ARG_GROUP} | cut -d: -f3)
 usermod -a -G users,${DEFAULT_GROUP},${ARG_GROUP} ${ARG_NAME} 2>/dev/null
 
 # add sudo user
-if [[ "${ARG_SUDO}" = true ]]; then
+if [[ ${ARG_SUDO} = true ]]; then
 	usermod -a -G sudo ${ARG_NAME} 2>/dev/null
 	passwd -qd ${ARG_NAME} 2>/dev/null
 	echo '${ARG_NAME} ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers
