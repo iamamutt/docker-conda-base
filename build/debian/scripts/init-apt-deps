@@ -19,3 +19,4 @@ apt-get update >/dev/null
 (cat "${_APT_GET_DEPS}" | xargs apt-get -qq install -y) >/dev/null
 apt-get autoremove -y
 apt-get clean -y
+rm -rf /var/lib/apt/lists/*
