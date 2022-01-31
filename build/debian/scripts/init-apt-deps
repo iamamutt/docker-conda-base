@@ -16,7 +16,7 @@ _APT_GET_DEPS="${1:-${APT_GET_DEPS:-/srv/conda/apt_requirements.txt}}"
 echo "# => Installing debian packages from '$_APT_GET_DEPS': '$(cat "${_APT_GET_DEPS}" | xargs)' ..."
 echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 apt-get update >/dev/null
-(cat "${_APT_GET_DEPS}" | xargs apt-get -qq install -y) >/dev/null
+(cat "${_APT_GET_DEPS}" | xargs apt-get -qq install -y --no-install-recommends) >/dev/null
 apt-get autoremove -y
 apt-get clean -y
 rm -rf /var/lib/apt/lists/*
