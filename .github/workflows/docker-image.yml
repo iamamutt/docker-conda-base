@@ -17,6 +17,7 @@ jobs:
           sudo rm -rf /usr/share/dotnet
           sudo apt-get clean -y
           sudo apt-get autoremove -y
+          docker system df
 
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -94,4 +95,6 @@ jobs:
           target: conda_base_debian
 
       - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+        run: |
+          echo ${{ steps.docker_build.outputs.digest }}
+          docker system df
