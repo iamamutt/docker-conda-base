@@ -13,23 +13,16 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
 
       - name: Github Tag with semantic versioning
+        id: semvertag
         uses: hennejg/github-tag-action@v4.3.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get Previous tag
-        id: previoustag
-        uses: WyriHaximus/github-action-get-previous-tag@v1
-        with:
-          fallback: v0.0.0a
-
-      - name: Get current date
-        id: timestamp
-        run: echo "::set-output name=date::$(date -d @${{ steps.previoustag.outputs.timestamp }} +'%Y-%m-%dT%H:%M:%SZ')"
+      - name: Assign environment variables
+        run: |
+          echo "image_build_date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -69,13 +62,13 @@ jobs:
           platforms: linux/arm64,linux/amd64
           push: true
           build-args: |
-            IMAGE_CREATED=${{ steps.timestamp.outputs.date }}
-            IMAGE_VERSION=${{ steps.previoustag.outputs.tag }}
+            IMAGE_CREATED=${{ env.image_build_date }}
+            IMAGE_VERSION=${{ steps.semvertag.outputs.new_tag }}
           tags: |
             ${{ secrets.DOCKER_HUB_USERNAME }}/conda_base:latest
-            ${{ secrets.DOCKER_HUB_USERNAME }}/conda_base:${{ steps.previoustag.outputs.tag }}
+            ${{ secrets.DOCKER_HUB_USERNAME }}/conda_base:${{ steps.semvertag.outputs.new_tag }}
             ghcr.io/${{ github.repository_owner }}/conda_base:latest
-            ghcr.io/${{ github.repository_owner }}/conda_base:${{ steps.previoustag.outputs.tag }}
+            ghcr.io/${{ github.repository_owner }}/conda_base:${{ steps.semvertag.outputs.new_tag }}
           target: conda_base_debian
 
       - name: Image digest
