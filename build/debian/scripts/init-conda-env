@@ -34,7 +34,7 @@ create_new_conda_env() {
 	command -v $CONDA_CMD &>/dev/null || CONDA_CMD=conda
 	conda info -qa >"${HOME}/init-conda-env.log"
 	echo "# => Installing new conda virtual environment from $CONDA_ENV_FILE ..."
-	$CONDA_CMD env create -q -vv --file "${CONDA_ENV_FILE}" --force
+	$CONDA_CMD env create -q -v --file "${CONDA_ENV_FILE}" --force
 }
 
 # function to set CONDA_ENV_USER based on .yml environment file
