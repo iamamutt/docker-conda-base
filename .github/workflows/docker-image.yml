@@ -14,14 +14,14 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Github Tag with semantic versioning
-        id: semvertag
-        uses: hennejg/github-tag-action@v4.3.1
+      - name: GitHub Tag
+        uses: mathieudutour/github-tag-action@v6.0
+        id: tag_version
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           release_branches: main
-          create_annotated_tag: true
-
+          create_annotated_tag: false
+          fetch_all_tags: true
 
       - name: Assign environment variables
         run: |
@@ -66,12 +66,12 @@ jobs:
           push: true
           build-args: |
             IMAGE_CREATED=${{ env.image_build_date }}
-            IMAGE_VERSION=${{ steps.semvertag.outputs.new_tag }}
+            IMAGE_VERSION=${{ steps.tag_version.outputs.new_tag }}
           tags: |
             ${{ secrets.DOCKER_HUB_USERNAME }}/conda_base:latest
-            ${{ secrets.DOCKER_HUB_USERNAME }}/conda_base:${{ steps.semvertag.outputs.new_tag }}
+            ${{ secrets.DOCKER_HUB_USERNAME }}/conda_base:${{ steps.tag_version.outputs.new_tag }}
             ghcr.io/${{ github.repository_owner }}/conda_base:latest
-            ghcr.io/${{ github.repository_owner }}/conda_base:${{ steps.semvertag.outputs.new_tag }}
+            ghcr.io/${{ github.repository_owner }}/conda_base:${{ steps.tag_version.outputs.new_tag }}
           target: conda_base_debian
 
       - name: Image digest
