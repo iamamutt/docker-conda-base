@@ -17,6 +17,7 @@ jobs:
           sudo rm -rf /usr/share/dotnet
           sudo apt-get clean -y
           sudo apt-get autoremove -y
+          du -hd2 /tmp
           docker system df
           docker images -a
           docker system prune -fa --volumes
