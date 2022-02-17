@@ -34,7 +34,7 @@ DEFAULT_GID=$(id -g "${DEFAULT_NAME}" 2>/dev/null)
 [[ -z "${DEFAULT_GID}" ]] && DEFAULT_GID=$(id -g)
 
 echo "default user info ->" \
-	"$(print_id ${DEFAULT_UID} ${DEFAULT_NAME} ${DEFAULT_GID} ${DEFAULT_GROUP})"
+	"$(print_id "${DEFAULT_UID}" "${DEFAULT_NAME}" "${DEFAULT_GID}" "${DEFAULT_GROUP}")"
 
 # empty user name uses image default
 [[ -z "${ARG_NAME}" ]] && ARG_NAME=${DEFAULT_NAME}
@@ -62,35 +62,35 @@ if [[ ! ${ARG_GID} -eq ${DEFAULT_GID} ]]; then
 	[[ "${ARG_GROUP}" = "${DEFAULT_GROUP}" ]] &&
 		err_exit "group name '$ARG_GROUP' with gid '$ARG_GID' can't be the same" \
 			"as existing group: gid=${DEFAULT_GID}(${DEFAULT_GROUP})."
-	groupadd --gid ${ARG_GID} --force ${ARG_GROUP}
+	groupadd --gid ${ARG_GID} --force "${ARG_GROUP}"
 fi
 
 # add new user if not found
-if [[ ! $(id -u ${ARG_NAME} 2>/dev/null) ]]; then
+if [[ ! $(id -u "${ARG_NAME}" 2>/dev/null) ]]; then
 	echo "adding new user ->" \
-		"$(print_id ${ARG_UID} ${ARG_NAME} ${ARG_GID} ${ARG_GROUP})," \
+		"$(print_id ${ARG_UID} "${ARG_NAME}" ${ARG_GID} "${ARG_GROUP}")," \
 		"current user is $(id)"
-	useradd -u ${ARG_UID} -g ${ARG_GID} --no-log-init -ms /bin/bash ${ARG_NAME}
+	useradd -u ${ARG_UID} -g ${ARG_GID} --no-log-init -ms /bin/bash "${ARG_NAME}"
 fi
 
 # actual group name and number assigned to new user
 ARG_GID=$(id -g "${ARG_NAME}")
-EST_NEW_GROUP_NAME=$(getent group ${ARG_GID} | cut -d: -f1)
+EST_NEW_GROUP_NAME=$(getent group "${ARG_GID}" | cut -d: -f1)
 
 # overwrite groupname if different from specified
 if [[ ! "${EST_NEW_GROUP_NAME}" = "${ARG_GROUP}" ]]; then
 	ARG_GROUP=${EST_NEW_GROUP_NAME}
 fi
-EST_NEW_GROUP_GID=$(getent group ${ARG_GROUP} | cut -d: -f3)
+EST_NEW_GROUP_GID=$(getent group "${ARG_GROUP}" | cut -d: -f3)
 
 # add user to all other groups
-usermod -a -G users,${DEFAULT_GROUP},${ARG_GROUP} ${ARG_NAME} 2>/dev/null
+usermod -a -G users,"${DEFAULT_GROUP}","${ARG_GROUP}" "${ARG_NAME}" 2>/dev/null
 
 # add sudo user
 if [[ ${ARG_SUDO} = true ]]; then
-	usermod -a -G sudo ${ARG_NAME} 2>/dev/null
-	passwd -qd ${ARG_NAME} 2>/dev/null
-	echo '${ARG_NAME} ALL=(ALL) NOPASSWD:ALL' >>/etc/sudoers
+	usermod -a -G sudo "${ARG_NAME}" 2>/dev/null
+	passwd -qd "${ARG_NAME}" 2>/dev/null
+	echo "${ARG_NAME} ALL=(ALL) NOPASSWD:ALL" >>/etc/sudoers
 fi
 
 # workaround for 32-bit uid/gids for useradd, groupadd, usermod
@@ -103,4 +103,4 @@ cat <<EOF >>$_OUTPUT_FILE
 ${ARG_NAME}:${ARG_UID}:${ARG_GROUP}:${ARG_GID}
 EOF
 
-echo "new user added -> $(print_id ${ARG_UID} "${ARG_NAME}" ${ARG_GID} "${ARG_GROUP}")"
+echo "new user added -> $(print_id ${ARG_UID} "${ARG_NAME}" "${ARG_GID}" "${ARG_GROUP}")"

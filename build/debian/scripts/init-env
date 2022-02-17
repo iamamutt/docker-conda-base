@@ -20,9 +20,10 @@ make_new_user() {
 	init-new-user
 	local new_user_file=/tmp/init-new-user.lastlog
 	if [[ -f ${new_user_file} ]]; then
-		local new_user_info=$(cat ${new_user_file})
-		_USER_NAME=$(echo $new_user_info | cut -d: -f1)
-		_USER_GROUP=$(echo $new_user_info | cut -d: -f3)
+		local new_user_info
+		new_user_info=$(cat ${new_user_file})
+		_USER_NAME=$(echo "$new_user_info" | cut -d: -f1)
+		_USER_GROUP=$(echo "$new_user_info" | cut -d: -f3)
 	else
 		echo "file '${new_user_file}' generated from 'init-new-user' script not found."
 	fi
@@ -30,15 +31,15 @@ make_new_user() {
 
 make_new_user
 if [[ -z "${_USER_NAME}" ]]; then
-	exec sudo-run --switch-user=$_USER_NAME --switch-group=$_USER_GROUP "${args[@]}"
+	exec sudo-run --switch-user="$_USER_NAME" --switch-group="$_USER_GROUP" "${args[@]}"
 fi
 
 sudo-run \
-	--switch-user=$_USER_NAME \
-	--switch-group=$_USER_GROUP \
+	--switch-user="$_USER_NAME" \
+	--switch-group="$_USER_GROUP" \
 	--sudo-command=init-conda-env
 
 sudo-run \
-	--switch-user=$_USER_NAME \
-	--switch-group=$_USER_GROUP \
+	--switch-user="$_USER_NAME" \
+	--switch-group="$_USER_GROUP" \
 	"${args[@]}"

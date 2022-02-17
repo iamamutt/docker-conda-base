@@ -13,10 +13,10 @@ set -e
 _APT_GET_DEPS="${1:-${APT_GET_DEPS:-/srv/conda/apt_requirements.txt}}"
 [[ -f "${_APT_GET_DEPS}" ]] || err_exit "file does not exist APT_GET_DEPS='$_APT_GET_DEPS'"
 
-echo "# => Installing debian packages from '$_APT_GET_DEPS': '$(cat "${_APT_GET_DEPS}" | xargs)' ..."
+echo "# => Installing debian packages from '$_APT_GET_DEPS': '$(xargs <"${_APT_GET_DEPS}")' ..."
 echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 apt-get update >/dev/null
-(cat "${_APT_GET_DEPS}" | xargs apt-get -qq install -y --no-install-recommends) >/dev/null
+(xargs <"${_APT_GET_DEPS}" apt-get -qq install -y --no-install-recommends) >/dev/null
 apt-get autoremove -y
 apt-get clean -y
 rm -rf /var/lib/apt/lists/*
