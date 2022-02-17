@@ -18,6 +18,8 @@ jobs:
           sudo apt-get clean -y
           sudo apt-get autoremove -y
           docker system df
+          docker images -a
+          docker system prune -fa --volumes
 
       - name: Checkout repository
         uses: actions/checkout@v2
