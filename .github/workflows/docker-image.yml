@@ -11,16 +11,16 @@ jobs:
   build_and_push:
     runs-on: ubuntu-latest
     steps:
-      - name: Make build space
-        run: |
-          sudo du -hd2 /tmp
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /usr/share/dotnet
-          sudo apt-get clean -y
-          sudo apt-get autoremove -y
-          docker system df
-          docker images -a
-          docker system prune -fa --volumes
+      # - name: Make build space
+      #   run: |
+      #     sudo du -hd2 /tmp
+      #     sudo rm -rf /usr/local/lib/android
+      #     sudo rm -rf /usr/share/dotnet
+      #     sudo apt-get clean -y
+      #     sudo apt-get autoremove -y
+      #     docker system df
+      #     docker images -a
+      #     docker system prune -fa --volumes
 
       - name: Checkout repository
         uses: actions/checkout@v2
