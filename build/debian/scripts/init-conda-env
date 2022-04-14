@@ -59,6 +59,6 @@ set_conda_env_user_from_file() {
 	conda env export -f "${HOME}/${CONDA_ENV_USER}.lock.yml" --no-builds -q
 }
 
-create_new_conda_env "${CONDA_ENV_FILE}"
+create_new_conda_env "${1:-${CONDA_ENV_FILE}}"
 set_conda_env_user_from_file "${CONDA_ENV_FILE}" "${CONDA_ENV_USER}"
 echo "# => Conda environment '${CONDA_ENV_USER}' installed."
