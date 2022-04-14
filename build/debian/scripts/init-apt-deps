@@ -4,11 +4,10 @@
 # ==========================
 
 err_exit() {
+	set -e
 	echo "# !Error: $*"
 	exit 1
 }
-
-set -e
 
 _APT_GET_DEPS="${1:-${APT_GET_DEPS:-/srv/conda/apt_requirements.txt}}"
 [[ -f "${_APT_GET_DEPS}" ]] || err_exit "file does not exist APT_GET_DEPS='$_APT_GET_DEPS'"

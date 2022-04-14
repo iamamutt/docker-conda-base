@@ -1,4 +1,5 @@
-# docker compose -p condabase --verbose up -d --build --force-recreate --remove-orphans
+# docker compose -f build/debian/docker-compose.yml -p condabase --verbose up -d --build --force-recreate --remove-orphans
+# docker compose -f build/debian/docker-compose.yml -p condabase --verbose down --volumes
 # docker ps -la --no-trunc
 # docker compose logs dev
 # docker exec -itu "501:20" condabase-dev-1 bash

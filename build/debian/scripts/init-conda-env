@@ -11,12 +11,12 @@ err_exit() {
 
 # function to append text to a matched line number
 append_at_line_match() {
-	local pattern="$1"
-	local append="$2"
+	local match_pattern="$1"
+	local to_append="$2"
 	local file="$3"
 	local line
-	line=$(awk -v pat="$pattern" '$0~pat{print NR}' "$file")
-	sed -i "$line i $append" "$file"
+	line=$(awk -v pat="$match_pattern" '$0~pat{print NR}' "$file")
+	sed -i "$line i $to_append" "$file"
 }
 
 # function to create a new conda environment with mamba or conda from yaml file

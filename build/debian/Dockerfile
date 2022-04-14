@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.3-labs
+# syntax=docker/dockerfile:1
 
 # global arguments shared across build stages
 ARG USER_NAME=condauser
@@ -24,11 +24,11 @@ ARG CONDA_DIST
 ARG CONDA_ROOT_DIR
 
 LABEL org.opencontainers.image.authors "Joseph Burling"
-LABEL org.opencontainers.image.title "${CONDA_DIST}_base_debian_0"
-LABEL org.opencontainers.image.description "A debian-based conda python environment (install)"
+LABEL org.opencontainers.image.title "${CONDA_DIST}_base_debian_pre"
+LABEL org.opencontainers.image.description "A debian-based conda-python environment"
 
-# set default shell to exit on first error
-SHELL [ "/bin/sh", "-e", "-c" ]
+# set default shell and to exit on first error
+SHELL [ "/bin/bash", "-ec" ]
 
 # Install linux dependencies -----------------------------------------------------------
 ENV TZ=${TIMEZONE}
@@ -60,15 +60,13 @@ RUN	<<-EOF
 	chmod -R 775 /var/log
 EOF
 
-# Skeleton files for new users and root startup scripts --------------------------------
+# Edit shell config files to find conda for new users and root -------------------------
 RUN	<<-EOF
-	cd /etc/skel
-	echo "\n# >>> conda_base_debian >>>" | tee -a \
-		.bashrc .bash_profile /root/.bashrc /root/.bash_profile /root/.profile >/dev/null
-	echo ". '/etc/profile.d/conda.sh'" | tee -a \
-		.bashrc /root/.bashrc >/dev/null
-	echo "# <<< conda_base_debian <<<" | tee -a \
-		.bashrc .bash_profile /root/.bashrc /root/.bash_profile /root/.profile >/dev/null
+	cfg_n=(/root/.bashrc /etc/skel/.bashrc)
+	cfg_l=(/root/.profile /root/.bash_profile /etc/skel/.bash_profile)
+	echo -e "\n# >>> conda_base_debian >>>" | tee -a "${cfg_l[@]}" "${cfg_n[@]}" >/dev/null
+	echo ". '/etc/profile.d/conda.sh'" | tee -a "${cfg_n[@]}" >/dev/null
+	echo "# <<< conda_base_debian <<<" | tee -a "${cfg_l[@]}" "${cfg_n[@]}" >/dev/null
 	mkdir -p .config .cache .local/share .local/state .local/bin
 EOF
 
@@ -76,9 +74,6 @@ EOF
 
 # switch to default group for future permissions
 USER 0:${USER_GID}
-
-# switch to bash as default shell for the next RUN commands, conda already in PATH
-SHELL [ "/bin/bash", "-ec" ]
 
 # copy over initialization scripts
 COPY --chown=0:${USER_GID} ./scripts/ /usr/local/bin/
@@ -110,7 +105,7 @@ WORKDIR /srv/conda
 ENV PATH=${CONDA_ROOT_DIR}/bin:$PATH
 RUN <<-EOF
 	mkdir -p ${CONDA_ROOT_DIR}
-	chmod 6775 ${CONDA_ROOT_DIR}
+	chmod 2775 ${CONDA_ROOT_DIR}
 	URL=https://github.com/conda-forge/miniforge/releases/latest/download/${CONDA_DIST}-$(uname)-$(uname -m).sh
 	wget --no-hsts --quiet -O /srv/conda/conda_install.sh ${URL}
 	chmod +x /srv/conda/conda_install.sh
@@ -155,8 +150,8 @@ ARG IMAGE_CREATED
 ARG IMAGE_VERSION
 ARG CONDA_DIST
 LABEL org.opencontainers.image.authors "Joseph Burling"
-LABEL org.opencontainers.image.title "${CONDA_DIST}_base_debian_build"
-LABEL org.opencontainers.image.description "A debian-based conda python environment"
+LABEL org.opencontainers.image.title "${CONDA_DIST}_base_debian_target"
+LABEL org.opencontainers.image.description "A debian-based conda-python environment"
 LABEL org.opencontainers.image.version "$IMAGE_VERSION"
 LABEL org.opencontainers.image.created "$IMAGE_CREATED"
 
