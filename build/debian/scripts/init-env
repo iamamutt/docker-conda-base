@@ -12,10 +12,12 @@ if [[ ${#@} -gt 0 ]]; then
 fi
 
 set -e
+
 init-apt-deps
 
 _USER_NAME=""
 _USER_GROUP=""
+
 make_new_user() {
 	init-new-user
 	local new_user_file=/tmp/init-new-user.lastlog
@@ -30,16 +32,12 @@ make_new_user() {
 }
 
 make_new_user
-if [[ -z "${_USER_NAME}" ]]; then
-	exec sudo-run --switch-user="$_USER_NAME" --switch-group="$_USER_GROUP" "${args[@]}"
+
+if [[ -n "${_USER_NAME}" ]]; then
+	sudo-run \
+		--switch-user="$_USER_NAME" \
+		--switch-group="$_USER_GROUP" \
+		--sudo-command=init-conda-env
 fi
 
-sudo-run \
-	--switch-user="$_USER_NAME" \
-	--switch-group="$_USER_GROUP" \
-	--sudo-command=init-conda-env
-
-sudo-run \
-	--switch-user="$_USER_NAME" \
-	--switch-group="$_USER_GROUP" \
-	"${args[@]}"
+sudo-run --switch-user="$_USER_NAME" --switch-group="$_USER_GROUP" "${args[@]}"

@@ -4,6 +4,7 @@
 # =======================
 
 err_exit() {
+	set -e
 	echo "# !Error: $*"
 	exit 1
 }
@@ -87,7 +88,7 @@ EST_NEW_GROUP_GID=$(getent group "${ARG_GROUP}" | cut -d: -f3)
 usermod -a -G users,"${DEFAULT_GROUP}","${ARG_GROUP}" "${ARG_NAME}" 2>/dev/null
 
 # add sudo user
-if [[ ${ARG_SUDO} = true ]]; then
+if [[ ${ARG_SUDO} = true ]] && ! grep -q "${ARG_NAME}" /etc/sudoers; then
 	usermod -a -G sudo "${ARG_NAME}" 2>/dev/null
 	passwd -qd "${ARG_NAME}" 2>/dev/null
 	echo "${ARG_NAME} ALL=(ALL) NOPASSWD:ALL" >>/etc/sudoers

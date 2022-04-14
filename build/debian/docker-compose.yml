@@ -6,17 +6,17 @@
 version: "2.4"
 services:
   dev:
-    environment:
-      NEW_USER_NAME: joseph
-      NEW_USER_UID: 501
-      NEW_USER_GROUP: staff
-      NEW_USER_GID: 20
-      NEW_USER_SUDO: "true"
+    # environment:
+    #   NEW_USER_NAME: joseph
+    #   NEW_USER_UID: 501
+    #   NEW_USER_GROUP: staff
+    #   NEW_USER_GID: 20
+    #   NEW_USER_SUDO: "true"
     image: conda_base_dev:v0.0.0a
     build:
       context: .
       dockerfile: Dockerfile
     init: true
     tty: true
-    # entrypoint: ["bash", "-lc"]
+    entrypoint: ["bash", "-lc"]
     command: "tail -f /dev/null" # "dev" # "conda info -a" #

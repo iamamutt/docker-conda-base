@@ -140,6 +140,7 @@ RUN	<<-EOF
 	export IMAGE_DEFAULT_USER_NAME=${USER_NAME}
 	export IMAGE_DEFAULT_USER_GROUP=${USER_GROUP}
 	init-new-user "${USER_NAME}" "${USER_GROUP}" ${USER_UID} ${USER_GID} true
+	rm -rf /tmp/*
 EOF
 
 ## Target stage ========================================================================
