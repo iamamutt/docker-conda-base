@@ -33,7 +33,7 @@ SHELL [ "/bin/bash", "-ec" ]
 # Install linux dependencies -----------------------------------------------------------
 ENV TZ=${TIMEZONE}
 RUN <<-EOF
-	mkdir -p -m 6775 /usr/share/man/man1
+	mkdir -p -m 2775 /usr/share/man/man1
 	echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 	apt-get update
 	apt-get -qq install --no-install-recommends -y \
